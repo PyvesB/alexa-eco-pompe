@@ -1,0 +1,20 @@
+[
+	{
+		"place_id": "82487708",
+		"licence": "Data © OpenStreetMap contributors, ODbL 1.0. https:\/\/osm.org\/copyright",
+		"osm_type": "way",
+		"osm_id": "54175774",
+		"boundingbox": [
+			"48.8667146",
+			"48.8682305",
+			"2.3283184",
+			"2.3305586"
+		],
+		"lat": "not a float",
+		"lon": "not a float",
+		"display_name": "Place Vendôme, Quartier Vendôme, Paris 1er Arrondissement, Paris, Île-de-France, France métropolitaine, 75001, France",
+		"class": "place",
+		"type": "square",
+		"importance": 0.39642879075688
+	}
+]

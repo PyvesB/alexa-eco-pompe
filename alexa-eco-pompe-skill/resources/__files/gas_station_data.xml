@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<pdv_liste>
+  <pdv id="1" cp="75001">
+    <adresse>Place Vendôme</adresse>
+    <ville>Parîs</ville>
+    <prix nom="Gazole" maj="2018-04-04 09:30:45" valeur="1.336"/>
+  </pdv>
+  <pdv id="2" cp="75014">
+    <adresse>Montparnasse</adresse>
+    <ville>paris</ville>
+    <prix nom="SP95" maj="2018-04-04 09:30:45" valeur="1.266"/>
+    <prix nom="SP98" maj="2018-04-04 09:30:45" valeur="1.442"/>
+  </pdv>
+  <pdv id="3" cp="73100">
+    <adresse>A41</adresse>
+    <ville>AIX LES BAINS</ville>
+    <prix nom="E10" maj="2018-04-04 09:30:45" valeur="1.399"/>
+  </pdv>
+</pdv_liste>

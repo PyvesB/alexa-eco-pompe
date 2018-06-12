@@ -1,0 +1,8 @@
+.classpath
+.project
+.settings/
+dependency-reduced-pom.xml
+target/
+bin/
+sonar-project.properties
+.scannerwork/
