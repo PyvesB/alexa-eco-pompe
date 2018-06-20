@@ -5,6 +5,9 @@
 <a href="https://github.com/PyvesB/alexa-eco-pompe/issues">
 <img src ="https://img.shields.io/github/issues/PyvesB/alexa-eco-pompe.svg?label=tickets%20ouverts" />
 </a>
+<a href="https://github.com/PyvesB/alexa-eco-pompe/blob/master/LICENSE.md">
+<img src ="https://img.shields.io/github/license/PyvesB/alexa-eco-pompe.svg?label=licence" />
+</a>
 <br/>
 
 **Faites des économies en demandant à Alexa de trouver les pompes à essence les moins chères !**
@@ -17,7 +20,7 @@
 
 # :speech_balloon: La Skill en bref
 
-Éco Pompe vous permet de trouver les pompes à essence les moins chères, pour le carburant de votre choix ! Spécifiez simplement un carburant (gazole, sans plomb 95, sans plomb 98, E10, E85, GPL) suivi d'une ville, d'un département ou d'une distance. Éco Pompe recherchera alors toutes les pompes satisfaisant ce critère géographique, en privilégiant celles qui ont actualisé leurs prix il y a moins d'une semaine. La Skill vous indiquera ensuite le nom de la station-service si disponible, son adresse, le prix du carburant ainsi que la date de dernière mise à jour, et résumera également ces informations dans une carte affichée dans l'application Alexa. Ne dépensez plus un centime de trop et payez votre carburant au juste prix !
+Éco Pompe vous permet de trouver les pompes à essence les moins chères ! Spécifiez simplement un carburant (gazole, sans plomb 95, sans plomb 98, E10, E85, GPL) suivi d'une ville, d'un département ou d'une distance. Éco Pompe recherchera alors toutes les pompes satisfaisant ce critère géographique, en privilégiant celles qui ont actualisé leurs prix il y a moins d'une semaine. La Skill vous indiquera ensuite le nom de la station-service si disponible, son adresse, le prix du carburant ainsi que sa date de dernière mise à jour. Une carte résumant ces informations sera également affichée dans l'application Alexa sur votre smartphone. Ne dépensez plus un centime de trop et payez votre carburant au juste prix !
 
 Les nouveautés et mises à jour seront documentées [ici](https://github.com/PyvesB/alexa-eco-pompe/releases).
 
