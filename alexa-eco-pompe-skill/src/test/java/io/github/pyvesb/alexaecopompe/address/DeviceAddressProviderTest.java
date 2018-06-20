@@ -80,7 +80,7 @@ class DeviceAddressProviderTest {
 	}
 
 	@Test
-	void shouldThrowInaccessibleExceptionIfIOExceptionThrown() {
+	void shouldThrowInaccessibleExceptionIfResponseCouldNotBeUnmarshalled() {
 		wireMockServer.stubFor(get(urlEqualTo(API_PATH))
 				.withHeader("Authorization", equalTo("Bearer " + API_TOKEN))
 				.withHeader("Accept", equalTo("application/json"))
@@ -92,5 +92,21 @@ class DeviceAddressProviderTest {
 		assertThrows(AddressInaccessibleException.class,
 				() -> underTest.fetchAddress("http://localhost:8089", DEVICE_ID, API_TOKEN));
 	}
+	
+	@Test
+	void shouldThrowInaccessibleExceptionIfTimeout() {
+		wireMockServer.stubFor(get(urlEqualTo(API_PATH))
+				.withHeader("Authorization", equalTo("Bearer " + API_TOKEN))
+				.withHeader("Accept", equalTo("application/json"))
+				.willReturn(aResponse()
+						.withStatus(HTTP_OK)
+						.withHeader("Content-Type", "application/json")
+						.withBodyFile("address_response.json")
+						.withFixedDelay(2500)));
 
+
+		assertThrows(AddressInaccessibleException.class,
+				() -> underTest.fetchAddress("http://localhost:8089", DEVICE_ID, API_TOKEN));
+	}
+	
 }

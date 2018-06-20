@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 public class DeviceAddressProvider {
 
 	private static final String PATH = "/v1/devices/%s/settings/address";
+	private static final int TIMEOUT = 2500;
 	private static final Logger LOGGER = LogManager.getLogger(DeviceAddressProvider.class);
 	private static final ObjectReader READER = new ObjectMapper().configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
 			.readerFor(Address.class);
@@ -36,6 +37,8 @@ public class DeviceAddressProvider {
 			URLConnection connection = new URL(host + String.format(PATH, device)).openConnection();
 			connection.setRequestProperty("Authorization", "Bearer " + token);
 			connection.setRequestProperty("Accept", "application/json");
+			connection.setConnectTimeout(TIMEOUT);
+			connection.setReadTimeout(TIMEOUT);
 			int responseCode = ((HttpURLConnection) connection).getResponseCode();
 			if (responseCode == HTTP_OK) {
 				return unmarshallAddress(connection);

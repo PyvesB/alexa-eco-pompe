@@ -71,10 +71,26 @@ class APIFetcherTest {
 	}
 
 	@Test
+	void shouldReturnEmptyResultIfTimeout() {
+		wireMockServer.stubFor(get(urlEqualTo(API_PATH + "?param=75014008"))
+				.withHeader("Accept", equalTo("application/json"))
+				.willReturn(aResponse()
+						.withBody("{}")
+						.withStatus(HTTP_OK)
+						.withFixedDelay(2500)));
+
+		Optional<String> result = underTest.fetchForValue("75014008");
+
+		assertFalse(result.isPresent());
+	}
+
+	@Test
 	void shouldCacheResultProvidedNoExceptionThrown() {
 		wireMockServer.stubFor(get(urlEqualTo(API_PATH + "?param=75014008"))
 				.withHeader("Accept", equalTo("application/json"))
-				.willReturn(aResponse().withBody("{}").withStatus(HTTP_OK)));
+				.willReturn(aResponse()
+						.withBody("{}")
+						.withStatus(HTTP_OK)));
 
 		underTest.fetchForValue("75014008");
 		underTest.fetchForValue("75014008");
@@ -95,7 +111,9 @@ class APIFetcherTest {
 				.withHeader("Accept", equalTo("application/json"))
 				.inScenario("First failure")
 				.whenScenarioStateIs("Second attempt")
-				.willReturn(aResponse().withBody("{}").withStatus(HTTP_OK)));
+				.willReturn(aResponse()
+						.withBody("{}")
+						.withStatus(HTTP_OK)));
 
 		underTest.fetchForValue("75014008");
 		Optional<String> result = underTest.fetchForValue("75014008");

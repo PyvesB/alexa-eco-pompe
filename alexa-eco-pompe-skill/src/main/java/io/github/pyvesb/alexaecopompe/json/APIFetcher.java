@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 
 public class APIFetcher<T> {
 
+	private static final int TIMEOUT = 2500;
 	private static final Logger LOGGER = LogManager.getLogger(APIFetcher.class);
 	private static final ObjectReader READER = new ObjectMapper().reader();
 
@@ -40,6 +41,8 @@ public class APIFetcher<T> {
 				LOGGER.debug("Fetching result for url {}", url.toString());
 				URLConnection connection = url.openConnection();
 				connection.setRequestProperty("Accept", "application/json");
+				connection.setConnectTimeout(TIMEOUT);
+				connection.setReadTimeout(TIMEOUT);
 				return executeGet(connection);
 			} catch (Exception e) {
 				LOGGER.error("Exception whilst fetching result for value {}", v, e);
