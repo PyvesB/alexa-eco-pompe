@@ -63,14 +63,14 @@ public class Address {
 
 	public String toNormalisedString() {
 		if (StringUtils.isEmpty(addressLine1)) {
-			return toSimplifiedAddress();
+			return toSimplifiedString();
 		}
 		// Normalised representation of the address that can easily be understood by geocoding APIs. Leading street
 		// numbers (e.g. 54, 36bis) are suppressed.
 		return StringUtils.normalizeSpace(addressLine1.replaceAll("[0-9]+[A-z]*", "") + " " + city + " " + postalCode);
 	}
 
-	public String toSimplifiedAddress() {
+	public String toSimplifiedString() {
 		// Simplified representation of the address that can trivially be understood by geocoding APIs.
 		return StringUtils.normalizeSpace(city + " " + postalCode);
 	}

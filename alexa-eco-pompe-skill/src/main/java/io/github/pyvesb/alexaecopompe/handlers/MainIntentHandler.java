@@ -174,7 +174,7 @@ public class MainIntentHandler implements RequestHandler {
 				Optional<Position> position = positionProvider.fetchForValue(address.toNormalisedString());
 				if (!position.isPresent()) {
 					// Try simplified address with better chance of retrieving position. Less precise.
-					position = positionProvider.fetchForValue(address.toSimplifiedAddress());
+					position = positionProvider.fetchForValue(address.toSimplifiedString());
 				}
 				if (position.isPresent()) {
 					List<GasStation> gasStations = dataProvider.getGasStationsWithinRadius(position.get(), radius);
