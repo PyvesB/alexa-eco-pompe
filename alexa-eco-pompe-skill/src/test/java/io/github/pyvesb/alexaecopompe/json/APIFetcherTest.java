@@ -39,7 +39,7 @@ class APIFetcherTest {
 	void setUp() {
 		wireMockServer.start();
 		WireMock.configureFor("localhost", wireMockServer.port());
-		underTest = new APIFetcher<>("http://localhost:8089" + API_PATH + "?param=%s", jn -> "result");
+		underTest = new APIFetcher<>("http://localhost:8089" + API_PATH + "?param=%s", "user", jn -> "result");
 	}
 
 	@AfterEach
@@ -51,6 +51,7 @@ class APIFetcherTest {
 	void shouldReturnResultForInputValue() {
 		wireMockServer.stubFor(get(urlEqualTo(API_PATH + "?param=75014008"))
 				.withHeader("Accept", equalTo("application/json"))
+				.withHeader("User-Agent", equalTo("user"))
 				.willReturn(aResponse().withBody("{}").withStatus(HTTP_OK)));
 
 		Optional<String> result = underTest.fetchForValue("75014008");

@@ -27,10 +27,12 @@ public class APIFetcher<T> {
 
 	private final String baseUrl;
 	private final Map<String, Optional<T>> resultCache = new HashMap<>();
+	private final String userAgent;
 	private final Function<JsonNode, T> extractor;
 
-	public APIFetcher(String baseUrl, Function<JsonNode, T> extractor) {
+	public APIFetcher(String baseUrl, String userAgent, Function<JsonNode, T> extractor) {
 		this.baseUrl = baseUrl;
+		this.userAgent = userAgent;
 		this.extractor = extractor;
 	}
 
@@ -41,6 +43,7 @@ public class APIFetcher<T> {
 				LOGGER.debug("Fetching result for url {}", url.toString());
 				URLConnection connection = url.openConnection();
 				connection.setRequestProperty("Accept", "application/json");
+				connection.setRequestProperty("User-Agent", userAgent);
 				connection.setConnectTimeout(TIMEOUT);
 				connection.setReadTimeout(TIMEOUT);
 				return executeGet(connection);
