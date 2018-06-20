@@ -124,7 +124,7 @@ class MainIntentHandlerTest {
 	@Test
 	@Tags({ @Tag("happy"), @Tag("radius") })
 	void shouldReturnPriceOfCheapestGasStationForRequestedRadiusAndGasType() throws Exception {
-		Address address = new Address("54 rue Cler", "Paris", "75002");
+		Address address = new Address("54Bis rue Cler", "Paris", "75002");
 		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString())).thenReturn(address);
 		Position position = new Position(43.6f, 4.08f);
 		when(positionProvider.fetchForValue(anyString())).thenReturn(Optional.of(position));
@@ -143,6 +143,27 @@ class MainIntentHandlerTest {
 		verify(dataProvider).getGasStationsWithinRadius(position, 10);
 		verify(gasStationPriceSorter).sortGasStationsByIncreasingPricesForGasType(asList(gs), SP95);
 		verify(nameProvider).fetchForValue("1");
+	}
+
+	@Test
+	@Tags({ @Tag("happy"), @Tag("radius") })
+	void shouldReturnPriceOfCheapestGasStationForRequestedRadiusAndGasTypeUsingSimplifiedAddress() throws Exception {
+		Address address = new Address("54 rue Cler", "Paris", "75002");
+		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString())).thenReturn(address);
+		Position position = new Position(43.6f, 4.08f);
+		when(positionProvider.fetchForValue(anyString())).thenReturn(Optional.empty()).thenReturn(Optional.of(position));
+		GasStation gs = new GasStation("1", 43.561f, 4.076f, "75002", "Paris", "rue Cler", new Price(SP95, TODAY, 1.10f));
+		when(dataProvider.getGasStationsWithinRadius(any(), anyInt())).thenReturn(asList(gs));
+		when(nameProvider.fetchForValue(anyString())).thenReturn(Optional.of("pyves gas"));
+
+		Response resp = underTest.handle(buildRadiusInput(SP95, "10", true)).orElseThrow(MissingResponse::new);
+
+		assertTrue(resp.getShouldEndSession());
+		assertCard("Pyves Gas\nRue Cler, Paris\nSans Plomb 95 : 1€10", resp);
+		assertSpeech("Pyves Gas vend du sans plomb 95 pour 1€10. Cette pompe est située Rue Cler à Paris, et a actualisé "
+				+ "ses tarifs aujourd'hui.", resp);
+		verify(positionProvider).fetchForValue("rue Cler Paris 75002");
+		verify(positionProvider).fetchForValue("Paris 75002");
 	}
 
 	@Test

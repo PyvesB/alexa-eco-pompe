@@ -171,7 +171,11 @@ public class MainIntentHandler implements RequestHandler {
 			try {
 				Address address = deviceAddressProvider.fetchAddress(systemState.getApiEndpoint(),
 						systemState.getDevice().getDeviceId(), systemState.getApiAccessToken());
-				Optional<Position> position = positionProvider.fetchForValue(address.toString());
+				Optional<Position> position = positionProvider.fetchForValue(address.toNormalisedString());
+				if (!position.isPresent()) {
+					// Try simplified address with better chance of retrieving position. Less precise.
+					position = positionProvider.fetchForValue(address.toSimplifiedAddress());
+				}
 				if (position.isPresent()) {
 					List<GasStation> gasStations = dataProvider.getGasStationsWithinRadius(position.get(), radius);
 					GasType gasType = GasType.fromId(gasId.get());

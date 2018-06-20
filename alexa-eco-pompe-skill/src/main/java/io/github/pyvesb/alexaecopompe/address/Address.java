@@ -58,8 +58,21 @@ public class Address {
 
 	@Override
 	public String toString() {
-		// Simplified representation of the address that can easily be understood by geocoding APIs.
-		return StringUtils.normalizeSpace(StringUtils.replaceAll(addressLine1, "\\d", "") + " " + city + " " + postalCode);
+		return "Address [addressLine1=" + addressLine1 + ", city=" + city + ", postalCode=" + postalCode + "]";
+	}
+
+	public String toNormalisedString() {
+		if (StringUtils.isEmpty(addressLine1)) {
+			return toSimplifiedAddress();
+		}
+		// Normalised representation of the address that can easily be understood by geocoding APIs. Leading street
+		// numbers (e.g. 54, 36bis) are suppressed.
+		return StringUtils.normalizeSpace(addressLine1.replaceAll("[0-9]+[A-z]*", "") + " " + city + " " + postalCode);
+	}
+
+	public String toSimplifiedAddress() {
+		// Simplified representation of the address that can trivially be understood by geocoding APIs.
+		return StringUtils.normalizeSpace(city + " " + postalCode);
 	}
 
 }
