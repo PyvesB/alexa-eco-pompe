@@ -32,7 +32,7 @@ class DeviceAddressProviderTest {
 	void setUp() {
 		wireMockServer.start();
 		WireMock.configureFor("localhost", wireMockServer.port());
-		underTest = new DeviceAddressProvider();
+		underTest = new DeviceAddressProvider(250);
 	}
 
 	@AfterEach
@@ -102,7 +102,7 @@ class DeviceAddressProviderTest {
 						.withStatus(HTTP_OK)
 						.withHeader("Content-Type", "application/json")
 						.withBodyFile("address_response.json")
-						.withFixedDelay(2500)));
+						.withFixedDelay(250)));
 
 
 		assertThrows(AddressInaccessibleException.class,

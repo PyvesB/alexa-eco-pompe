@@ -24,19 +24,20 @@ import io.github.pyvesb.alexaecopompe.address.Address;
 
 public class PositionProvider {
 
-	private static final int TIMEOUT = 2500;
 	private static final Logger LOGGER = LogManager.getLogger(PositionProvider.class);
 	private static final ObjectReader READER = new ObjectMapper().reader();
 
 	private final Map<String, Optional<Position>> positionCache = new HashMap<>();
 	private final String baseUrl;
 	private final String userAgent;
+	private final int timeout;
 	private final JsonPointer latPointer;
 	private final JsonPointer lonPointer;
 
-	public PositionProvider(String baseUrl, String userAgent, String latPath, String lonPath) {
+	public PositionProvider(String baseUrl, String userAgent, int timeout, String latPath, String lonPath) {
 		this.baseUrl = baseUrl;
 		this.userAgent = userAgent;
+		this.timeout = timeout;
 		this.latPointer = JsonPointer.compile(latPath);
 		this.lonPointer = JsonPointer.compile(lonPath);
 	}
@@ -55,8 +56,8 @@ public class PositionProvider {
 				URLConnection connection = url.openConnection();
 				connection.setRequestProperty("Accept", "application/json");
 				connection.setRequestProperty("User-Agent", userAgent);
-				connection.setConnectTimeout(TIMEOUT);
-				connection.setReadTimeout(TIMEOUT);
+				connection.setConnectTimeout(timeout);
+				connection.setReadTimeout(timeout);
 				return executeGet(connection);
 			} catch (Exception e) {
 				LOGGER.error("Exception whilst fetching result for value {}", v, e);

@@ -77,9 +77,9 @@ public class MainIntentHandler implements RequestHandler {
 	public MainIntentHandler() {
 		this(new DataProvider(getenv("DATA_URL"), Long.parseLong(getenv("DATA_STALENESS_MILLIS"))),
 				new NameProvider(),
-				new PositionProvider(getenv("POSITION_ENPOINT"), getenv("USER_AGENT"), getenv("LAT_PATH"),
-						getenv("LON_PATH")),
-				new DeviceAddressProvider(),
+				new PositionProvider(getenv("POSITION_ENPOINT"), getenv("USER_AGENT"),
+						Integer.parseInt(getenv("TIMEOUT_MILLIS")), getenv("LAT_PATH"), getenv("LON_PATH")),
+				new DeviceAddressProvider(Integer.parseInt(getenv("TIMEOUT_MILLIS"))),
 				new GasStationPriceSorter(Long.parseLong(getenv("PRICE_STALENESS_DAYS"))));
 	}
 

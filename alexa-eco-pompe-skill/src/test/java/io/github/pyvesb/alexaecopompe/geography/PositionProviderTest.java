@@ -43,7 +43,7 @@ class PositionProviderTest {
 	void setUp() {
 		wireMockServer.start();
 		WireMock.configureFor("localhost", wireMockServer.port());
-		underTest = new PositionProvider("http://localhost:8089" + API_PATH + "?param=%s", "user", "/0/lat", "/0/lon");
+		underTest = new PositionProvider("http://localhost:8089" + API_PATH + "?param=%s", "user", 250, "/0/lat", "/0/lon");
 	}
 
 	@AfterEach
@@ -118,9 +118,9 @@ class PositionProviderTest {
 		wireMockServer.stubFor(get(urlMatching(API_PATH + "\\?param=.*$"))
 				.withHeader("Accept", equalTo("application/json"))
 				.willReturn(aResponse()
-						.withBody("[]")
+						.withBodyFile("position_response.json")
 						.withStatus(HTTP_OK)
-						.withFixedDelay(2500)));
+						.withFixedDelay(250)));
 
 		Optional<Position> position = underTest.getByAddress(ADDRESS);
 
