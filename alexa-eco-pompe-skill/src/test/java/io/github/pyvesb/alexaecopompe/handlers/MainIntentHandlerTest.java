@@ -169,7 +169,7 @@ class MainIntentHandlerTest {
 	@Test
 	@Tags({ @Tag("happy"), @Tag("nearby") })
 	void shouldReturnPriceOfCheapestGasStationNearbyForRequestedGasType() throws Exception {
-		Address address = new Address("54 rue Cler", "Paris", "75002");
+		Address address = new Address("54 rue Cler", null, "75002");
 		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString())).thenReturn(address);
 		Position position = new Position(43.6f, 4.08f);
 		when(positionProvider.fetchForValue(anyString())).thenReturn(Optional.of(position));
@@ -184,7 +184,7 @@ class MainIntentHandlerTest {
 		assertSpeech("Pyves Gas vend du sans plomb 95 pour 1€10. Cette pompe est située Rue Cler à Paris, et a actualisé "
 				+ "ses tarifs aujourd'hui.", resp);
 		verify(deviceAddressProvider).fetchAddress(API_ENDPOINT, DEVICE_ID, API_ACCESS_TOKEN);
-		verify(positionProvider).fetchForValue("rue Cler Paris 75002");
+		verify(positionProvider).fetchForValue("rue Cler  75002");
 		verify(dataProvider).getGasStationsWithinRadius(position, 5);
 		verify(gasStationPriceSorter).sortGasStationsByIncreasingPricesForGasType(asList(gs), SP95);
 		verify(nameProvider).fetchForValue("1");
