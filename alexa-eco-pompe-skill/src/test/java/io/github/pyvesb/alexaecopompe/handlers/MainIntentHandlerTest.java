@@ -57,11 +57,12 @@ import io.github.pyvesb.alexaecopompe.address.AddressForbiddenException;
 import io.github.pyvesb.alexaecopompe.address.AddressInaccessibleException;
 import io.github.pyvesb.alexaecopompe.address.DeviceAddressProvider;
 import io.github.pyvesb.alexaecopompe.data.DataProvider;
+import io.github.pyvesb.alexaecopompe.data.NameProvider;
 import io.github.pyvesb.alexaecopompe.domain.GasStation;
 import io.github.pyvesb.alexaecopompe.domain.GasType;
 import io.github.pyvesb.alexaecopompe.domain.Price;
 import io.github.pyvesb.alexaecopompe.geography.Position;
-import io.github.pyvesb.alexaecopompe.json.APIFetcher;
+import io.github.pyvesb.alexaecopompe.geography.PositionProvider;
 import io.github.pyvesb.alexaecopompe.utils.GasStationPriceSorter;
 import utils.MissingResponse;
 
@@ -75,9 +76,9 @@ class MainIntentHandlerTest {
 	@Mock
 	private DataProvider dataProvider;
 	@Mock
-	private APIFetcher<String> nameProvider;
+	private NameProvider nameProvider;
 	@Mock
-	private APIFetcher<Position> positionProvider;
+	private PositionProvider positionProvider;
 	@Mock
 	private DeviceAddressProvider deviceAddressProvider;
 	@Mock
@@ -108,7 +109,7 @@ class MainIntentHandlerTest {
 		GasStation gs1 = new GasStation("1", 43.5f, 4.0f, "73000", "Chambéry", "rue Favre", new Price(GAZOLE, DATE, 1.10f));
 		GasStation gs2 = new GasStation("2", 43.6f, 4.0f, "73000", "Chambéry", "rue Juiverie", new Price(SP95, DATE, 1.15f));
 		when(dataProvider.getGasStationsForDepartment(any())).thenReturn(asList(gs1, gs2));
-		when(nameProvider.fetchForValue(anyString())).thenReturn(Optional.of("pyves gas"));
+		when(nameProvider.getById(anyString())).thenReturn(Optional.of("Pyves Gas"));
 
 		Response resp = underTest.handle(buildDepartmentInput(GAZOLE, "Savoie", "73")).orElseThrow(MissingResponse::new);
 
@@ -118,7 +119,7 @@ class MainIntentHandlerTest {
 				+ "tarifs le 2018-04-04.", resp);
 		verify(dataProvider).getGasStationsForDepartment("73");
 		verify(gasStationPriceSorter).sortGasStationsByIncreasingPricesForGasType(asList(gs1, gs2), GAZOLE);
-		verify(nameProvider).fetchForValue("1");
+		verify(nameProvider).getById("1");
 	}
 
 	@Test
@@ -127,10 +128,10 @@ class MainIntentHandlerTest {
 		Address address = new Address("54Bis rue Cler", "Paris", "75002");
 		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString())).thenReturn(address);
 		Position position = new Position(43.6f, 4.08f);
-		when(positionProvider.fetchForValue(anyString())).thenReturn(Optional.of(position));
+		when(positionProvider.getByAddress(any())).thenReturn(Optional.of(position));
 		GasStation gs = new GasStation("1", 43.561f, 4.076f, "75002", "Paris", "rue Cler", new Price(SP95, TODAY, 1.10f));
 		when(dataProvider.getGasStationsWithinRadius(any(), anyInt())).thenReturn(asList(gs));
-		when(nameProvider.fetchForValue(anyString())).thenReturn(Optional.of("pyves gas"));
+		when(nameProvider.getById(anyString())).thenReturn(Optional.of("Pyves Gas"));
 
 		Response resp = underTest.handle(buildRadiusInput(SP95, "10", true)).orElseThrow(MissingResponse::new);
 
@@ -139,31 +140,10 @@ class MainIntentHandlerTest {
 		assertSpeech("Pyves Gas vend du sans plomb 95 pour 1€10. Cette pompe est située Rue Cler à Paris, et a actualisé "
 				+ "ses tarifs aujourd'hui.", resp);
 		verify(deviceAddressProvider).fetchAddress(API_ENDPOINT, DEVICE_ID, API_ACCESS_TOKEN);
-		verify(positionProvider).fetchForValue("rue Cler Paris 75002");
+		verify(positionProvider).getByAddress(address);
 		verify(dataProvider).getGasStationsWithinRadius(position, 10);
 		verify(gasStationPriceSorter).sortGasStationsByIncreasingPricesForGasType(asList(gs), SP95);
-		verify(nameProvider).fetchForValue("1");
-	}
-
-	@Test
-	@Tags({ @Tag("happy"), @Tag("radius") })
-	void shouldReturnPriceOfCheapestGasStationForRequestedRadiusAndGasTypeUsingSimplifiedAddress() throws Exception {
-		Address address = new Address("54 rue Cler", "Paris", "75002");
-		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString())).thenReturn(address);
-		Position position = new Position(43.6f, 4.08f);
-		when(positionProvider.fetchForValue(anyString())).thenReturn(Optional.empty()).thenReturn(Optional.of(position));
-		GasStation gs = new GasStation("1", 43.561f, 4.076f, "75002", "Paris", "rue Cler", new Price(SP95, TODAY, 1.10f));
-		when(dataProvider.getGasStationsWithinRadius(any(), anyInt())).thenReturn(asList(gs));
-		when(nameProvider.fetchForValue(anyString())).thenReturn(Optional.of("pyves gas"));
-
-		Response resp = underTest.handle(buildRadiusInput(SP95, "10", true)).orElseThrow(MissingResponse::new);
-
-		assertTrue(resp.getShouldEndSession());
-		assertCard("Pyves Gas\nRue Cler, Paris\nSans Plomb 95 : 1€10", resp);
-		assertSpeech("Pyves Gas vend du sans plomb 95 pour 1€10. Cette pompe est située Rue Cler à Paris, et a actualisé "
-				+ "ses tarifs aujourd'hui.", resp);
-		verify(positionProvider).fetchForValue("rue Cler Paris 75002");
-		verify(positionProvider).fetchForValue("Paris 75002");
+		verify(nameProvider).getById("1");
 	}
 
 	@Test
@@ -172,10 +152,10 @@ class MainIntentHandlerTest {
 		Address address = new Address("54 rue Cler", null, "75002");
 		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString())).thenReturn(address);
 		Position position = new Position(43.6f, 4.08f);
-		when(positionProvider.fetchForValue(anyString())).thenReturn(Optional.of(position));
+		when(positionProvider.getByAddress(any())).thenReturn(Optional.of(position));
 		GasStation gs = new GasStation("1", 43.561f, 4.076f, "75002", "Paris", "rue Cler", new Price(SP95, TODAY, 1.10f));
 		when(dataProvider.getGasStationsWithinRadius(any(), anyInt())).thenReturn(asList(gs));
-		when(nameProvider.fetchForValue(anyString())).thenReturn(Optional.of("pyves gas"));
+		when(nameProvider.getById(anyString())).thenReturn(Optional.of("Pyves Gas"));
 
 		Response resp = underTest.handle(buildNearbyInput(SP95, true)).orElseThrow(MissingResponse::new);
 
@@ -184,10 +164,10 @@ class MainIntentHandlerTest {
 		assertSpeech("Pyves Gas vend du sans plomb 95 pour 1€10. Cette pompe est située Rue Cler à Paris, et a actualisé "
 				+ "ses tarifs aujourd'hui.", resp);
 		verify(deviceAddressProvider).fetchAddress(API_ENDPOINT, DEVICE_ID, API_ACCESS_TOKEN);
-		verify(positionProvider).fetchForValue("rue Cler  75002");
+		verify(positionProvider).getByAddress(address);
 		verify(dataProvider).getGasStationsWithinRadius(position, 5);
 		verify(gasStationPriceSorter).sortGasStationsByIncreasingPricesForGasType(asList(gs), SP95);
-		verify(nameProvider).fetchForValue("1");
+		verify(nameProvider).getById("1");
 	}
 
 	@Test
@@ -195,7 +175,7 @@ class MainIntentHandlerTest {
 	void shouldReturnPriceOfCheapestGasStationForRequestedTownAndGasType() {
 		GasStation gs = new GasStation("1", 43.561f, 4.076f, "75002", "Paris", "rue Cler", new Price(SP95, TODAY, 1.10f));
 		when(dataProvider.getGasStationsForPostCodes(any())).thenReturn(asList(gs));
-		when(nameProvider.fetchForValue(anyString())).thenReturn(Optional.of("pyves gas"));
+		when(nameProvider.getById(anyString())).thenReturn(Optional.of("Pyves Gas"));
 
 		Response resp = underTest.handle(buildTownInput(SP95, "Paris", "c05,75001,75002")).orElseThrow(MissingResponse::new);
 
@@ -205,7 +185,7 @@ class MainIntentHandlerTest {
 				+ "ses tarifs aujourd'hui.", resp);
 		verify(dataProvider).getGasStationsForPostCodes("75001", "75002");
 		verify(gasStationPriceSorter).sortGasStationsByIncreasingPricesForGasType(asList(gs), SP95);
-		verify(nameProvider).fetchForValue("1");
+		verify(nameProvider).getById("1");
 	}
 
 	@Test
@@ -213,7 +193,7 @@ class MainIntentHandlerTest {
 	void shouldReturnPriceOfCheapestGasStationForRequestedTownAndGasTypeIfGasStationNameIsMissing() {
 		GasStation gs = new GasStation("1", 43.5f, 4.0f, "75002", "Paris", "rue Cler", new Price(SP95, YESTERDAY, 1.10f));
 		when(dataProvider.getGasStationsForPostCodes(any())).thenReturn(asList(gs));
-		when(nameProvider.fetchForValue(anyString())).thenReturn(Optional.empty());
+		when(nameProvider.getById(anyString())).thenReturn(Optional.empty());
 
 		Response resp = underTest.handle(buildTownInput(SP95, "Paris", "c05,75001,75002")).orElseThrow(MissingResponse::new);
 
@@ -223,7 +203,7 @@ class MainIntentHandlerTest {
 				+ "tarifs hier.", resp);
 		verify(dataProvider).getGasStationsForPostCodes("75001", "75002");
 		verify(gasStationPriceSorter).sortGasStationsByIncreasingPricesForGasType(asList(gs), SP95);
-		verify(nameProvider).fetchForValue("1");
+		verify(nameProvider).getById("1");
 	}
 
 	@Test
@@ -231,7 +211,7 @@ class MainIntentHandlerTest {
 	void shouldSuggestE10AsAnAlternativeIfNoGasStationsSellAnySP95() {
 		GasStation gs = new GasStation("1", 43.561f, 4.076f, "75002", "Paris", "rue Cler", new Price(E10, DATE, 1.10f));
 		when(dataProvider.getGasStationsForPostCodes(any())).thenReturn(asList(gs));
-		when(nameProvider.fetchForValue(anyString())).thenReturn(Optional.of("pyves gas"));
+		when(nameProvider.getById(anyString())).thenReturn(Optional.of("Pyves Gas"));
 
 		Response resp = underTest.handle(buildTownInput(SP95, "Paris", "c05,75001,75002")).orElseThrow(MissingResponse::new);
 
@@ -242,7 +222,7 @@ class MainIntentHandlerTest {
 		verify(dataProvider).getGasStationsForPostCodes("75001", "75002");
 		verify(gasStationPriceSorter).sortGasStationsByIncreasingPricesForGasType(asList(gs), SP95);
 		verify(gasStationPriceSorter).sortGasStationsByIncreasingPricesForGasType(asList(gs), E10);
-		verify(nameProvider).fetchForValue("1");
+		verify(nameProvider).getById("1");
 	}
 
 	@ParameterizedTest
@@ -379,7 +359,7 @@ class MainIntentHandlerTest {
 	void shouldReturnUnknownPositionIfThePositionCouldNotBeDetermined() throws Exception {
 		Address address = new Address("54 rue Cler", "Paris", "75002");
 		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString())).thenReturn(address);
-		when(positionProvider.fetchForValue(anyString())).thenReturn(Optional.empty());
+		when(positionProvider.getByAddress(any())).thenReturn(Optional.empty());
 
 		Response resp = underTest.handle(buildRadiusInput(SP95, "10", true)).orElseThrow(MissingResponse::new);
 

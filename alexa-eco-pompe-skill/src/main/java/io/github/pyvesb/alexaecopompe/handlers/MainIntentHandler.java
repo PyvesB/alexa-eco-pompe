@@ -50,12 +50,12 @@ import io.github.pyvesb.alexaecopompe.address.AddressForbiddenException;
 import io.github.pyvesb.alexaecopompe.address.AddressInaccessibleException;
 import io.github.pyvesb.alexaecopompe.address.DeviceAddressProvider;
 import io.github.pyvesb.alexaecopompe.data.DataProvider;
+import io.github.pyvesb.alexaecopompe.data.NameProvider;
 import io.github.pyvesb.alexaecopompe.domain.GasStation;
 import io.github.pyvesb.alexaecopompe.domain.GasType;
 import io.github.pyvesb.alexaecopompe.domain.Price;
 import io.github.pyvesb.alexaecopompe.geography.Position;
-import io.github.pyvesb.alexaecopompe.json.APIFetcher;
-import io.github.pyvesb.alexaecopompe.json.JsonExtractors;
+import io.github.pyvesb.alexaecopompe.geography.PositionProvider;
 import io.github.pyvesb.alexaecopompe.speech.Normalisers;
 import io.github.pyvesb.alexaecopompe.utils.GasStationPriceSorter;
 import io.github.pyvesb.alexaecopompe.utils.PostCodesExtractor;
@@ -68,23 +68,22 @@ public class MainIntentHandler implements RequestHandler {
 	private static final int RADIUS_UPPER_BOUND = 20;
 
 	private final DataProvider dataProvider;
-	private final APIFetcher<String> nameProvider;
-	private final APIFetcher<Position> positionProvider;
+	private final NameProvider nameProvider;
+	private final PositionProvider positionProvider;
 	private final DeviceAddressProvider deviceAddressProvider;
 	private final GasStationPriceSorter gasStationPriceSorter;
 	private final DecimalFormat euroFormat;
 
 	public MainIntentHandler() {
 		this(new DataProvider(getenv("DATA_URL"), Long.parseLong(getenv("DATA_STALENESS_MILLIS"))),
-				new APIFetcher<>(getenv("NAME_ENPOINT"), getenv("USER_AGENT"),
-						JsonExtractors.nameExtractor(getenv("NAME_PATH"))),
-				new APIFetcher<>(getenv("POSITION_ENPOINT"),
-						getenv("USER_AGENT"), JsonExtractors.positionExtractor(getenv("LAT_PATH"), getenv("LON_PATH"))),
+				new NameProvider(),
+				new PositionProvider(getenv("POSITION_ENPOINT"), getenv("USER_AGENT"), getenv("LAT_PATH"),
+						getenv("LON_PATH")),
 				new DeviceAddressProvider(),
 				new GasStationPriceSorter(Long.parseLong(getenv("PRICE_STALENESS_DAYS"))));
 	}
 
-	MainIntentHandler(DataProvider dataProvider, APIFetcher<String> nameProvider, APIFetcher<Position> positionProvider,
+	MainIntentHandler(DataProvider dataProvider, NameProvider nameProvider, PositionProvider positionProvider,
 			DeviceAddressProvider deviceAddressProvider, GasStationPriceSorter gasStationPriceSorter) {
 		this.dataProvider = dataProvider;
 		this.positionProvider = positionProvider;
@@ -172,11 +171,7 @@ public class MainIntentHandler implements RequestHandler {
 			try {
 				Address address = deviceAddressProvider.fetchAddress(systemState.getApiEndpoint(),
 						systemState.getDevice().getDeviceId(), systemState.getApiAccessToken());
-				Optional<Position> position = positionProvider.fetchForValue(address.toNormalisedString());
-				if (!position.isPresent()) {
-					// Try simplified address with better chance of retrieving position. Less precise.
-					position = positionProvider.fetchForValue(address.toSimplifiedString());
-				}
+				Optional<Position> position = positionProvider.getByAddress(address);
 				if (position.isPresent()) {
 					List<GasStation> gasStations = dataProvider.getGasStationsWithinRadius(position.get(), radius);
 					GasType gasType = GasType.fromId(gasId.get());
@@ -242,7 +237,7 @@ public class MainIntentHandler implements RequestHandler {
 
 	private Optional<Response> buildGasStationResponse(ResponseBuilder respBuilder, GasStation gasStation, Price price,
 			Optional<String> town, String baseText) {
-		Optional<String> gsName = nameProvider.fetchForValue(gasStation.getId()).map(Normalisers::normaliseGasStationName);
+		Optional<String> gsName = nameProvider.getById(gasStation.getId());
 		String euroText = euroFormat.format(price.getValue());
 		String address = Normalisers.normaliseAddress(gasStation.getAddress());
 		String townText = Normalisers.normaliseTown(town.orElse(gasStation.getTown()));

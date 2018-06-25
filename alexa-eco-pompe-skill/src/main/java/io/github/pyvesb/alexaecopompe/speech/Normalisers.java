@@ -13,8 +13,6 @@ public class Normalisers {
 	private static final String[] TOWN_REPLACEMENTS = new String[] { "Mont ", "Sur ", "," };
 	private static final String[] ADDRESS_REPLACEES = new String[] { "Bld.", "Bld ", "Bd ", "Av.", "Av ", "Ave ", "Rn ", "Rd ", "Za ", "Zac ", ",", "S/ ", "/" };
 	private static final String[] ADDRESS_REPLACEMENTS = new String[] { "Boulevard ", "Boulevard ", "Boulevard ", "Avenue ", "Avenue ","Avenue ", "RN ", "RD ", "Z.A. ", "Z.A.C. ", "", "Sur ", "," };
-	private static final String[] NAME_REPLACEES = new String[] { "Sas ", "Sarl", "E.leclerc", "rmarche", "Geant " };
-	private static final String[] NAME_REPLACEMENTS = new String[] { "S.A.S. ", "S.A.R.L.", "Leclerc", "rmarché", "Géant " };
 
 	public static String normaliseTown(String town) {
 		String capitalized = WordUtils.capitalizeFully(town, ' ', '-', '\'', '/');
@@ -28,11 +26,6 @@ public class Normalisers {
 		return StringUtils.replaceEach(capitalizedWithoutComplement, ADDRESS_REPLACEES, ADDRESS_REPLACEMENTS);
 	}
 
-	public static String normaliseGasStationName(String gasStationName) {
-		String capitalized = WordUtils.capitalizeFully(gasStationName, ' ', '-');
-		return StringUtils.replaceEach(capitalized, NAME_REPLACEES, NAME_REPLACEMENTS);
-	}
-	
 	private Normalisers() {
 		// Not called.
 	}

@@ -21,10 +21,4 @@ class NormalisersTest {
 		assertEquals(normalisation, Normalisers.normaliseAddress(input));
 	}
 	
-	@ParameterizedTest
-	@CsvFileSource(resources = { "/name_normalisation.csv" })
-	void shouldNormaliseGasStationNames(String input, String normalisation) {
-		assertEquals(normalisation, Normalisers.normaliseGasStationName(input));
-	}
-
 }
