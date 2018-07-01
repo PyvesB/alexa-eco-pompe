@@ -38,7 +38,7 @@ public class InputBuilder {
 		LaunchRequest launchRequest = LaunchRequest.builder().build();
 		return buildInput(launchRequest);
 	}
-	
+
 	public static HandlerInput buildEndedInput() {
 		return buildInput(SessionEndedRequest.builder().build());
 	}
@@ -141,7 +141,9 @@ public class InputBuilder {
 	private static HandlerInput buildInput(Request speechletRequest) {
 		User user = User.builder().build();
 		Session session = Session.builder().withSessionId(SESSION_ID).withUser(user).build();
-		RequestEnvelope envelope = RequestEnvelope.builder().withRequest(speechletRequest).withSession(session).build();
+		Context context = Context.builder().build();
+		RequestEnvelope envelope = RequestEnvelope.builder().withContext(context).withRequest(speechletRequest)
+				.withSession(session).build();
 		return HandlerInput.builder().withRequestEnvelope(envelope).build();
 	}
 

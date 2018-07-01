@@ -31,7 +31,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.dispatcher.request.handler.RequestHandler;
-import com.amazon.ask.model.Context;
 import com.amazon.ask.model.Intent;
 import com.amazon.ask.model.IntentRequest;
 import com.amazon.ask.model.RequestEnvelope;
@@ -116,10 +115,10 @@ public class MainIntentHandler implements RequestHandler {
 			return handleLocationRequest(input.getResponseBuilder(), slots.get("gas"), slots.get("department"));
 		} else if ("GasRadius".equals(intentName)) {
 			return handleRadiusRequest(input.getResponseBuilder(), slots.get("gas"), slots.get("radius"),
-					envelope.getContext(), session.getUser());
+					envelope.getContext().getSystem(), session.getUser());
 		} else if ("GasNearby".equals(intentName)) {
-			return handleRadiusRequest(input.getResponseBuilder(), slots.get("gas"), DEFAULT_RADIUS, envelope.getContext(),
-					session.getUser());
+			return handleRadiusRequest(input.getResponseBuilder(), slots.get("gas"), DEFAULT_RADIUS,
+					envelope.getContext().getSystem(), session.getUser());
 		}
 		return input.getResponseBuilder().withSpeech(UNSUPPORTED).withReprompt(UNSUPPORTED).build();
 	}
@@ -127,11 +126,12 @@ public class MainIntentHandler implements RequestHandler {
 	private Optional<Response> handleLocationRequest(ResponseBuilder respBuilder, Slot gasSlot, Slot locationSlot) {
 		if (gasSlot != null && locationSlot != null) {
 			Optional<String> gasId = getSlotId(gasSlot);
-			Optional<String> locationId = getSlotId(locationSlot);
 			if (!gasId.isPresent()) {
 				LOGGER.warn("Unsupported gas type (gas={})", gasSlot.getValue());
 				return respBuilder.withSpeech(UNSUPPORTED_GAS_TYPE).withReprompt(UNSUPPORTED_GAS_TYPE).build();
-			} else if (!locationId.isPresent()) {
+			}
+			Optional<String> locationId = getSlotId(locationSlot);
+			if (!locationId.isPresent()) {
 				LOGGER.warn("Unsupported location (location={})", locationSlot.getValue());
 				return respBuilder.withSpeech(UNSUPPORTED_LOCATION).withReprompt(UNSUPPORTED_LOCATION).build();
 			}
@@ -152,22 +152,21 @@ public class MainIntentHandler implements RequestHandler {
 	}
 
 	private Optional<Response> handleRadiusRequest(ResponseBuilder respBuilder, Slot gasSlot, Slot radiusSlot,
-			Context context, User user) {
+			SystemState systemState, User user) {
 		if (gasSlot != null && radiusSlot != null) {
+			if (user.getPermissions() == null) {
+				return handleMissingPermissions(respBuilder);
+			}
 			Optional<String> gasId = getSlotId(gasSlot);
-			int radius = NumberUtils.toInt(radiusSlot.getValue());
 			if (!gasId.isPresent()) {
 				LOGGER.warn("Unsupported gas type (gas={})", gasSlot.getValue());
 				return respBuilder.withSpeech(UNSUPPORTED_GAS_TYPE).withReprompt(UNSUPPORTED_GAS_TYPE).build();
-			} else if (radius <= 0 || radius > RADIUS_UPPER_BOUND) {
+			}
+			int radius = NumberUtils.toInt(radiusSlot.getValue());
+			if (radius <= 0 || radius > RADIUS_UPPER_BOUND) {
 				LOGGER.info("Incorrect radius (radius={})", radiusSlot.getValue());
 				return respBuilder.withSpeech(INCORRECT_RADIUS).withReprompt(INCORRECT_RADIUS).build();
-			} else if (user.getPermissions() == null) {
-				LOGGER.info("No permissions - null");
-				return respBuilder.withSpeech(MISSING_PERMS).withAskForPermissionsConsentCard(ADDRESS_PERMS)
-						.withShouldEndSession(true).build();
 			}
-			SystemState systemState = context.getSystem();
 			try {
 				Address address = deviceAddressProvider.fetchAddress(systemState.getApiEndpoint(),
 						systemState.getDevice().getDeviceId(), systemState.getApiAccessToken());
@@ -181,9 +180,7 @@ public class MainIntentHandler implements RequestHandler {
 				LOGGER.warn("Unknown position (address={})", address);
 				return respBuilder.withSpeech(POSITION_UNKNOWN).withShouldEndSession(true).build();
 			} catch (AddressForbiddenException e) {
-				LOGGER.info("No permissions - exception");
-				return respBuilder.withSpeech(MISSING_PERMS).withAskForPermissionsConsentCard(ADDRESS_PERMS)
-						.withShouldEndSession(true).build();
+				return handleMissingPermissions(respBuilder);
 			} catch (AddressInaccessibleException e) {
 				LOGGER.error("Amazon address error (endpoint={})", systemState.getApiEndpoint(), e);
 				return respBuilder.withSpeech(ADDRESS_ERROR).withShouldEndSession(true).build();
@@ -191,6 +188,12 @@ public class MainIntentHandler implements RequestHandler {
 		}
 		LOGGER.warn("Null slot(s) (gasSlot={}, radiusSlot={})", gasSlot, radiusSlot);
 		return respBuilder.withSpeech(RADIUS_BAD_REQUEST).withReprompt(RADIUS_BAD_REQUEST).build();
+	}
+
+	private Optional<Response> handleMissingPermissions(ResponseBuilder respBuilder) {
+		LOGGER.info("Missing address permissions");
+		return respBuilder.withSpeech(MISSING_PERMS).withAskForPermissionsConsentCard(ADDRESS_PERMS)
+				.withShouldEndSession(true).build();
 	}
 
 	private Optional<String> getSlotId(Slot slot) {

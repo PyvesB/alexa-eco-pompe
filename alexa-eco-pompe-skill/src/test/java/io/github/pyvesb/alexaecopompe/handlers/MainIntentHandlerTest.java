@@ -257,7 +257,7 @@ class MainIntentHandlerTest {
 	@Tags({ @Tag("unsupported-gas"), @Tag("town"), @Tag("radius") })
 	Stream<DynamicTest> shouldReturnUnsupportedGasTypeIfGasTypeCouldNotBeMatched() {
 		HandlerInput input1 = buildTownInput("or noir", null, "Paris", "c05,75001,75002");
-		HandlerInput input2 = buildRadiusInput("sans plomb 97", null, "2", false);
+		HandlerInput input2 = buildRadiusInput("sans plomb 97", null, "2", true);
 
 		return Stream.of(input1, input2).map(input -> dynamicTest(buildDynamicDisplayName(input),
 				() -> {
