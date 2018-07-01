@@ -19,7 +19,7 @@ public class NameProvider {
 
 	public Optional<String> getById(String id) {
 		if (idsToNames == null) {
-			JavaType type = TypeFactory.defaultInstance().constructMapLikeType(Map.class, String.class, String.class);
+			JavaType type = TypeFactory.defaultInstance().constructMapType(Map.class, String.class, String.class);
 			ObjectReader objectReader = new ObjectMapper().readerFor(type);
 			try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("id_name_mapping.json")) {
 				idsToNames = objectReader.readValue(inputStream);
