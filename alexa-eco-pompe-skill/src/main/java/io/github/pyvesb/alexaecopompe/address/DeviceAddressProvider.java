@@ -38,7 +38,7 @@ public class DeviceAddressProvider {
 	public Address fetchAddress(String host, String device, String token)
 			throws AddressForbiddenException, AddressInaccessibleException {
 		try {
-			LOGGER.info("Fetching address for host {}, device {} and token {}", host, device, token);
+			LOGGER.info("Fetching address for host {} and device {}", host, device);
 			URLConnection connection = new URL(host + String.format(PATH, device)).openConnection();
 			connection.setRequestProperty("Authorization", "Bearer " + token);
 			connection.setRequestProperty("Accept", "application/json");
