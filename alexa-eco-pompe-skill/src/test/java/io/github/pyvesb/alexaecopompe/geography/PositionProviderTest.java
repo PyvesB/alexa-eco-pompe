@@ -43,7 +43,7 @@ class PositionProviderTest {
 	void setUp() {
 		wireMockServer.start();
 		WireMock.configureFor("localhost", wireMockServer.port());
-		underTest = new PositionProvider("http://localhost:8089" + API_PATH + "?param=%s", "user", 250, "/0/lat", "/0/lon");
+		underTest = new PositionProvider("http://localhost:8089" + API_PATH + "?param=%s", "user", 500, "/0/lat", "/0/lon");
 	}
 
 	@AfterEach
@@ -89,11 +89,11 @@ class PositionProviderTest {
 	}
 
 	@Test
-	void shouldReturnEmptyResultIfInvalidResponses() {
+	void shouldReturnEmptyResultIfResponseMissingLatitudeOrLongitude() {
 		wireMockServer.stubFor(get(urlMatching(API_PATH + "\\?param=.*$"))
 				.withHeader("Accept", equalTo("application/json"))
 				.willReturn(aResponse()
-						.withBodyFile("position_invalid_response.json")
+						.withBody("[{\"lat\": \"1.0\"}]")
 						.withStatus(HTTP_OK)));
 
 		Optional<Position> position = underTest.getByAddress(ADDRESS);
@@ -102,7 +102,7 @@ class PositionProviderTest {
 	}
 
 	@Test
-	void shouldReturnEmptyResultIfExceptionsThown() {
+	void shouldReturnEmptyResultIfResponseInvalid() {
 		wireMockServer.stubFor(get(urlMatching(API_PATH + "\\?param=.*$"))
 				.withHeader("Accept", equalTo("application/json"))
 				.willReturn(aResponse()
@@ -120,7 +120,7 @@ class PositionProviderTest {
 				.willReturn(aResponse()
 						.withBodyFile("position_response.json")
 						.withStatus(HTTP_OK)
-						.withFixedDelay(250)));
+						.withFixedDelay(500)));
 
 		Optional<Position> position = underTest.getByAddress(ADDRESS);
 
@@ -128,7 +128,7 @@ class PositionProviderTest {
 	}
 
 	@Test
-	void shouldCacheResultIfNoExceptionThrown() {
+	void shouldCacheResultIfValidPosition() {
 		wireMockServer.stubFor(get(urlEqualTo(API_PATH + "?param=rue+Cler+Paris+75001"))
 				.withHeader("Accept", equalTo("application/json"))
 				.willReturn(aResponse()
@@ -142,12 +142,53 @@ class PositionProviderTest {
 	}
 
 	@Test
-	void shouldNotCacheEmptyResultIfExceptionsThrown() {
+	void shouldCacheResultIfResponseMissingLatitudeOrLongitude() {
+		wireMockServer.stubFor(get(urlMatching(API_PATH + "\\?param=.*$"))
+				.withHeader("Accept", equalTo("application/json"))
+				.willReturn(aResponse()
+						.withBody("[]")
+						.withStatus(HTTP_OK)));
+
+		underTest.getByAddress(ADDRESS);
+		underTest.getByAddress(ADDRESS);
+
+		// Expect 2 as simplified address will be used as an alternative.
+		verify(exactly(2), getRequestedFor(anyUrl()));
+	}
+
+	@Test
+	void shouldNotCacheEmptyResultIfResponseInvalid() {
 		wireMockServer.stubFor(get(urlMatching(API_PATH + "\\?param=.*$"))
 				.withHeader("Accept", equalTo("application/json"))
 				.inScenario("First failure")
 				.whenScenarioStateIs(STARTED)
 				.willReturn(aResponse().withStatus(HTTP_INTERNAL_ERROR))
+				.willSetStateTo("Second attempt"));
+
+		wireMockServer.stubFor(get(urlEqualTo(API_PATH + "?param=rue+Cler+Paris+75001"))
+				.withHeader("Accept", equalTo("application/json"))
+				.inScenario("First failure")
+				.whenScenarioStateIs("Second attempt")
+				.willReturn(aResponse()
+						.withBodyFile("position_response.json")
+						.withStatus(HTTP_OK)));
+
+		underTest.getByAddress(ADDRESS);
+		Optional<Position> position = underTest.getByAddress(ADDRESS);
+
+		assertTrue(position.isPresent());
+	}
+
+	@Test
+	void shouldNotCacheEmptyResultIfTimeouts() {
+		wireMockServer.stubFor(get(urlMatching(API_PATH + "\\?param=.*$"))
+				.withHeader("Accept", equalTo("application/json"))
+				.inScenario("First failure")
+				.whenScenarioStateIs(STARTED)
+				.willReturn(aResponse()
+						.withBodyFile("position_response.json")
+						.withStatus(HTTP_OK)
+						.withFixedDelay(500))
 				.willSetStateTo("Second attempt"));
 
 		wireMockServer.stubFor(get(urlEqualTo(API_PATH + "?param=rue+Cler+Paris+75001"))

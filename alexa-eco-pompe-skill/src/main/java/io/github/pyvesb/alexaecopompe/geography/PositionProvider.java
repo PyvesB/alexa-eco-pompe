@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -72,10 +71,9 @@ public class PositionProvider {
 			JsonNode jsonNode = READER.readTree(inputStream);
 			JsonNode latNode = jsonNode.at(latPointer);
 			JsonNode lonNode = jsonNode.at(lonPointer);
-			boolean validData = NumberUtils.isParsable(latNode.asText()) && NumberUtils.isParsable(lonNode.asText());
-			return validData
-					? Optional.of(new Position(Float.parseFloat(latNode.asText()), Float.parseFloat(lonNode.asText())))
-					: Optional.empty();
+			boolean missing = latNode.isMissingNode() || lonNode.isMissingNode();
+			return missing ? Optional.empty()
+					: Optional.of(new Position(Float.parseFloat(latNode.asText()), Float.parseFloat(lonNode.asText())));
 		}
 	}
 
