@@ -12,7 +12,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 public final class GasStation {
 
-	private static final float LATITUDE_UPPER_BOUND = 90f;
 	private static final float COORDINATE_SCALE_DOWN_FACTOR = 100000f;
 
 	private final String id;
@@ -37,17 +36,9 @@ public final class GasStation {
 			@JacksonXmlProperty(localName = "adresse") String address,
 			@JacksonXmlProperty(localName = "prix") List<Price> prices) {
 		this.id = id;
-		// The input data may be incorrect with inverted latitude and longitude. This relies on the fact that
-		// metropolitan France always has latitude values greater than the longitude ones.
-		float realLatitude = latitude < longitude ? longitude : latitude;
-		float realLongitude = latitude < longitude ? latitude : longitude;
-		// The input data may be incorrect with both values scaled up by 100000.
-		if (realLatitude > LATITUDE_UPPER_BOUND) {
-			realLatitude /= COORDINATE_SCALE_DOWN_FACTOR;
-			realLongitude /= COORDINATE_SCALE_DOWN_FACTOR;
-		}
-		this.latitude = realLatitude;
-		this.longitude = realLongitude;
+		// The input data has both coordinate values scaled up by 100000.
+		this.latitude = latitude / COORDINATE_SCALE_DOWN_FACTOR;
+		this.longitude = longitude / COORDINATE_SCALE_DOWN_FACTOR;
 		this.postCode = postCode;
 		this.town = town;
 		this.address = address;

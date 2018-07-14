@@ -17,15 +17,15 @@ class GeographicStationManagerTest {
 
 	@Test
 	void shouldComputeGasStationsWithinRadius() {
-		GasStation gs1 = new GasStation("1", 44.99f, 2.01f, "01000", "t", "a1"); // 1.362km from (45.0,2.0)
-		GasStation gs2 = new GasStation("2", 45.02698f, 2.0f, "01000", "t", "a2"); // 3.0002km from (45.0,2.0)
-		GasStation gs3 = new GasStation("3", 45.03201f, 1.978f, "01000", "t", "a3"); // 3.957km from (45.0,2.0)
-		GasStation gs4 = new GasStation("4", 45.033f, 1.980002f, "01000", "t", "a4"); // 3.992km from (45.0,2.0)
-		GasStation gs5 = new GasStation("5", 45.00811f, 1.9118f, "01000", "t", "a5"); // 6.993km from (45.0,2.0)
-		GasStation gs6 = new GasStation("6", 44.90996f, 1.999996f, "01000", "t", "a6"); // 10.012km from (45.0,2.0)
-		GasStation gs7 = new GasStation("7", 44.90996f, 1.999996f, "01000", "t", "a7"); // 10.012km from (45.0,2.0)
-		GasStation gs8 = new GasStation("8", 44.8863f, 2.19f, "01000", "t", "a8"); // 19.582km from (45.0,2.0)
-		GasStation gs9 = new GasStation("9", 45.0f, 1.571f, "01000", "t", "a9"); // 33.495km from (45.0,2.0)
+		GasStation gs1 = new GasStation("1", 4499000f, 201000f, "01000", "t", "a1"); // 1.362km from (45.0,2.0)
+		GasStation gs2 = new GasStation("2", 4502698f, 200000f, "01000", "t", "a2"); // 3.0002km from (45.0,2.0)
+		GasStation gs3 = new GasStation("3", 4503201f, 197800f, "01000", "t", "a3"); // 3.957km from (45.0,2.0)
+		GasStation gs4 = new GasStation("4", 4503300f, 198000.2f, "01000", "t", "a4"); // 3.992km from (45.0,2.0)
+		GasStation gs5 = new GasStation("5", 4500811f, 191180f, "01000", "t", "a5"); // 6.993km from (45.0,2.0)
+		GasStation gs6 = new GasStation("6", 4490996f, 199999.6f, "01000", "t", "a6"); // 10.012km from (45.0,2.0)
+		GasStation gs7 = new GasStation("7", 4490996f, 199999.6f, "01000", "t", "a7"); // 10.012km from (45.0,2.0)
+		GasStation gs8 = new GasStation("8", 4488630f, 219000f, "01000", "t", "a8"); // 19.582km from (45.0,2.0)
+		GasStation gs9 = new GasStation("9", 4500000f, 157100f, "01000", "t", "a9"); // 33.495km from (45.0,2.0)
 
 		List<GasStation> gasStations = asList(gs8, gs6, gs7, gs1, gs9, gs5, gs2, gs3, gs4);
 		assert gasStations.stream().sorted((s1, s2) -> compare(s1.getLat(), s2.getLat())).collect(toList())

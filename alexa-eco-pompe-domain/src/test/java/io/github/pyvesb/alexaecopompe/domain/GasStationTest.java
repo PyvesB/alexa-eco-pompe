@@ -9,15 +9,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class GasStationTest {
-	
-	@Test
-	void shouldSwapLatitudeAndLongitudeIfInverted() {
-		GasStation underTest = new GasStation("1", 4.076f, 43.561f, "75001", "Paris", "rue Cler");
 
-		assertEquals(43.561f, underTest.getLat());
-		assertEquals(4.076f, underTest.getLon());
-	}
-	
 	@Test
 	void shouldScaleDownLatitudeAndLongitudeIfWrongOrderOfMagnitude() {
 		GasStation underTest = new GasStation("1", 4356100f, -107600f, "75001", "Paris", "rue Cler");

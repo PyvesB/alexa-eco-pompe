@@ -88,11 +88,11 @@ class DataProviderTest {
 
 		@Test
 		void shouldReturnGasStationsForPostCodes() {
-			GasStation gs1 = new GasStation("1", 43.560f, 4.075f, "75001", "Parîs", "Place Vendôme",
+			GasStation gs1 = new GasStation("1", 4356000f, 407500f, "75001", "Parîs", "Place Vendôme",
 					new Price(GAZOLE, DATE, 1.336f));
-			GasStation gs2 = new GasStation("2", 43.561f, 4.076f, "75014", "paris", "Montparnasse",
+			GasStation gs2 = new GasStation("2", 4356100f, 407600f, "75014", "paris", "Montparnasse",
 					new Price(SP95, DATE, 1.266f), new Price(SP98, DATE, 1.442f));
-			GasStation gs3 = new GasStation("3", 43.562f, 4.077f, "73100", "AIX LES BAINS", "A41",
+			GasStation gs3 = new GasStation("3", 4356200f, 407700f, "73100", "AIX LES BAINS", "A41",
 					new Price(E10, DATE, 1.399f));
 
 			List<GasStation> gasStationsInParis = underTest.getGasStationsForPostCodes("75001", "75014");
@@ -110,11 +110,11 @@ class DataProviderTest {
 
 		@Test
 		void shouldReturnGasStationsForDepartmentIdentifier() {
-			GasStation gs1 = new GasStation("1", 43.560f, 4.075f, "75001", "Parîs", "Place Vendôme",
+			GasStation gs1 = new GasStation("1", 4356000f, 407500f, "75001", "Parîs", "Place Vendôme",
 					new Price(GAZOLE, DATE, 1.336f));
-			GasStation gs2 = new GasStation("2", 43.561f, 4.076f, "75014", "paris", "Montparnasse",
+			GasStation gs2 = new GasStation("2", 4356100f, 407600f, "75014", "paris", "Montparnasse",
 					new Price(SP95, DATE, 1.266f), new Price(SP98, DATE, 1.442f));
-			GasStation gs3 = new GasStation("3", 43.562f, 4.077f, "73100", "AIX LES BAINS", "A41",
+			GasStation gs3 = new GasStation("3", 4356200f, 407700f, "73100", "AIX LES BAINS", "A41",
 					new Price(E10, DATE, 1.399f));
 
 			List<GasStation> gasStationsInParis = underTest.getGasStationsForDepartment("75");
@@ -132,11 +132,11 @@ class DataProviderTest {
 
 		@Test
 		void shouldReturnGasStationsForPositionAndRadius() {
-			GasStation gs1 = new GasStation("1", 43.560f, 4.075f, "75001", "Parîs", "Place Vendôme",
+			GasStation gs1 = new GasStation("1", 4356000f, 407500f, "75001", "Parîs", "Place Vendôme",
 					new Price(GAZOLE, DATE, 1.336f));
-			GasStation gs2 = new GasStation("2", 43.561f, 4.076f, "75014", "paris", "Montparnasse",
+			GasStation gs2 = new GasStation("2", 4356100f, 407600f, "75014", "paris", "Montparnasse",
 					new Price(SP95, DATE, 1.266f), new Price(SP98, DATE, 1.442f));
-			GasStation gs3 = new GasStation("3", 43.562f, 4.077f, "73100", "AIX LES BAINS", "A41",
+			GasStation gs3 = new GasStation("3", 4356200f, 407700f, "73100", "AIX LES BAINS", "A41",
 					new Price(E10, DATE, 1.399f));
 			when(geographicStationManager.getGasStationsWithinRadius(any(), anyInt())).thenReturn(asList(gs1));
 
@@ -186,7 +186,7 @@ class DataProviderTest {
 			underTest.getGasStationsForPostCodes("75001,75014");
 			when(clock.millis()).thenReturn(INITIAL_TIME + 2000L);
 			List<GasStation> gasStationsInAix = underTest.getGasStationsForPostCodes("73100");
-			GasStation gs = new GasStation("3", 43.562f, 4.077f, "73100", "AIX LES BAINS", "A41",
+			GasStation gs = new GasStation("3", 4356200f, 407700f, "73100", "AIX LES BAINS", "A41",
 					new Price(E10, DATE, 1.399f));
 			assertEquals(asList(gs), gasStationsInAix);
 		}

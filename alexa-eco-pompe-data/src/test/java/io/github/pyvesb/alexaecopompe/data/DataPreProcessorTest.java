@@ -87,9 +87,9 @@ class DataPreProcessorTest {
 		assertEquals(CannedAccessControlList.PublicRead, putObjectRequest.getCannedAcl());
 		assertEquals(212L, putObjectRequest.getMetadata().getContentLength());
 
-		GasStation gs1 = new GasStation("7340002", 45.25743f, 4.696312f, "07430", "Davézieux", "LE MAS OUEST - RTE DE LYON",
+		GasStation gs1 = new GasStation("7340002", 4525743f, 469631.2f, "07430", "Davézieux", "LE MAS OUEST - RTE DE LYON",
 				new Price(GAZOLE, DATE2, 1.389f), new Price(E85, DATE2, 0.749f), new Price(E10, DATE2, 1.448f));
-		GasStation gs2 = new GasStation("94470005", 48.755f, 2.505f, "94470", "Boissy-Saint-Léger",
+		GasStation gs2 = new GasStation("94470005", 4875500f, 250500f, "94470", "Boissy-Saint-Léger",
 				"Avenue du Général Leclerc", new Price(GAZOLE, DATE1, 1.439f), new Price(E10, DATE1, 1.549f),
 				new Price(SP98, DATE1, 1.599f));
 		try (InflaterInputStream inflaterInputStream = new InflaterInputStream(putObjectRequest.getInputStream())) {
