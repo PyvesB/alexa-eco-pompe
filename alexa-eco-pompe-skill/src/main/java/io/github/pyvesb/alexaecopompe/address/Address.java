@@ -68,8 +68,8 @@ public class Address {
 	}
 
 	public String toSimplifiedString() {
-		// Simplified representation of the address that can trivially be understood by geocoding APIs.
-		return StringUtils.joinWith(" ", city, postalCode);
+		// Simplified representation containing only the postal code.
+		return postalCode;
 	}
 
 }

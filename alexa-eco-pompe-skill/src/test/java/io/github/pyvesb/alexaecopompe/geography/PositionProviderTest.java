@@ -75,7 +75,7 @@ class PositionProviderTest {
 						.withBody("[]")
 						.withStatus(HTTP_OK)));
 
-		wireMockServer.stubFor(get(urlEqualTo(API_PATH + "?param=Paris+75001"))
+		wireMockServer.stubFor(get(urlEqualTo(API_PATH + "?param=75001"))
 				.withHeader("Accept", equalTo("application/json"))
 				.withHeader("User-Agent", equalTo("user"))
 				.willReturn(aResponse()
