@@ -64,7 +64,7 @@ public class MainIntentHandler implements RequestHandler {
 	private static final Logger LOGGER = LogManager.getLogger(MainIntentHandler.class);
 	private static final List<String> ADDRESS_PERMS = singletonList("read::alexa:device:all:address");
 	private static final Slot DEFAULT_RADIUS = Slot.builder().withName("radius").withValue("5").build();
-	private static final int RADIUS_UPPER_BOUND = 20;
+	private static final int RADIUS_UPPER_BOUND = 30;
 
 	private final DataProvider dataProvider;
 	private final NameProvider nameProvider;
