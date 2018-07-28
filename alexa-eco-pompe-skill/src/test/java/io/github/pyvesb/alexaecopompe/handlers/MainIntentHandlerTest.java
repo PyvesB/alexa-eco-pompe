@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static utils.InputBuilder.API_ACCESS_TOKEN;
@@ -109,7 +108,7 @@ class MainIntentHandlerTest {
 		GasStation gs1 = new GasStation("1", 43.5f, 4.0f, "73000", "Chambéry", "rue Favre", new Price(GAZOLE, DATE, 1.10f));
 		GasStation gs2 = new GasStation("2", 43.6f, 4.0f, "73000", "Chambéry", "rue Juiverie", new Price(SP95, DATE, 1.15f));
 		when(dataProvider.getGasStationsForDepartment(any())).thenReturn(asList(gs1, gs2));
-		when(nameProvider.getById(anyString())).thenReturn(Optional.of("Pyves Gas"));
+		when(nameProvider.getById(any())).thenReturn(Optional.of("Pyves Gas"));
 
 		Response resp = underTest.handle(buildDepartmentInput(GAZOLE, "Savoie", "73")).orElseThrow(MissingResponse::new);
 
@@ -126,12 +125,12 @@ class MainIntentHandlerTest {
 	@Tags({ @Tag("happy"), @Tag("radius") })
 	void shouldReturnPriceOfCheapestGasStationForRequestedRadiusAndGasType() throws Exception {
 		Address address = new Address("54Bis rue Cler", "Paris", "75002");
-		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString())).thenReturn(address);
+		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenReturn(address);
 		Position position = new Position(43.6f, 4.08f);
 		when(positionProvider.getByAddress(any())).thenReturn(Optional.of(position));
 		GasStation gs = new GasStation("1", 43.561f, 4.076f, "75002", "Paris", "rue Cler", new Price(SP95, TODAY, 1.10f));
 		when(dataProvider.getGasStationsWithinRadius(any(), anyInt())).thenReturn(asList(gs));
-		when(nameProvider.getById(anyString())).thenReturn(Optional.of("Pyves Gas"));
+		when(nameProvider.getById(any())).thenReturn(Optional.of("Pyves Gas"));
 
 		Response resp = underTest.handle(buildRadiusInput(SP95, "10", true)).orElseThrow(MissingResponse::new);
 
@@ -150,12 +149,12 @@ class MainIntentHandlerTest {
 	@Tags({ @Tag("happy"), @Tag("nearby") })
 	void shouldReturnPriceOfCheapestGasStationNearbyForRequestedGasType() throws Exception {
 		Address address = new Address("54 rue Cler", null, "75002");
-		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString())).thenReturn(address);
+		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenReturn(address);
 		Position position = new Position(43.6f, 4.08f);
 		when(positionProvider.getByAddress(any())).thenReturn(Optional.of(position));
 		GasStation gs = new GasStation("1", 43.561f, 4.076f, "75002", "Paris", "rue Cler", new Price(SP95, TODAY, 1.10f));
 		when(dataProvider.getGasStationsWithinRadius(any(), anyInt())).thenReturn(asList(gs));
-		when(nameProvider.getById(anyString())).thenReturn(Optional.of("Pyves Gas"));
+		when(nameProvider.getById(any())).thenReturn(Optional.of("Pyves Gas"));
 
 		Response resp = underTest.handle(buildNearbyInput(SP95, true)).orElseThrow(MissingResponse::new);
 
@@ -175,7 +174,7 @@ class MainIntentHandlerTest {
 	void shouldReturnPriceOfCheapestGasStationForRequestedTownAndGasType() {
 		GasStation gs = new GasStation("1", 43.561f, 4.076f, "75002", "Paris", "rue Cler", new Price(SP95, TODAY, 1.10f));
 		when(dataProvider.getGasStationsForPostCodes(any())).thenReturn(asList(gs));
-		when(nameProvider.getById(anyString())).thenReturn(Optional.of("Pyves Gas"));
+		when(nameProvider.getById(any())).thenReturn(Optional.of("Pyves Gas"));
 
 		Response resp = underTest.handle(buildTownInput(SP95, "Paris", "c05,75001,75002")).orElseThrow(MissingResponse::new);
 
@@ -193,7 +192,7 @@ class MainIntentHandlerTest {
 	void shouldReturnPriceOfCheapestGasStationForRequestedTownAndGasTypeIfGasStationNameIsMissing() {
 		GasStation gs = new GasStation("1", 43.5f, 4.0f, "75002", "Paris", "rue Cler", new Price(SP95, YESTERDAY, 1.10f));
 		when(dataProvider.getGasStationsForPostCodes(any())).thenReturn(asList(gs));
-		when(nameProvider.getById(anyString())).thenReturn(Optional.empty());
+		when(nameProvider.getById(any())).thenReturn(Optional.empty());
 
 		Response resp = underTest.handle(buildTownInput(SP95, "Paris", "c05,75001,75002")).orElseThrow(MissingResponse::new);
 
@@ -211,7 +210,7 @@ class MainIntentHandlerTest {
 	void shouldSuggestE10AsAnAlternativeIfNoGasStationsSellAnySP95() {
 		GasStation gs = new GasStation("1", 43.561f, 4.076f, "75002", "Paris", "rue Cler", new Price(E10, DATE, 1.10f));
 		when(dataProvider.getGasStationsForPostCodes(any())).thenReturn(asList(gs));
-		when(nameProvider.getById(anyString())).thenReturn(Optional.of("Pyves Gas"));
+		when(nameProvider.getById(any())).thenReturn(Optional.of("Pyves Gas"));
 
 		Response resp = underTest.handle(buildTownInput(SP95, "Paris", "c05,75001,75002")).orElseThrow(MissingResponse::new);
 
@@ -246,7 +245,7 @@ class MainIntentHandlerTest {
 	void shouldReturnNoGasStationFoundForTypeIfNoGasStationsSellTheRequestedGasTypeInRequestedRadius(GasType gasType)
 			throws Exception {
 		Address address = new Address("54Bis rue Cler", "Paris", "75002");
-		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString())).thenReturn(address);
+		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenReturn(address);
 		Position position = new Position(43.6f, 4.08f);
 		when(positionProvider.getByAddress(any())).thenReturn(Optional.of(position));
 		GasStation gs = new GasStation("1", 43.561f, 4.076f, "75001", "paris", "Place Vendôme");
@@ -276,7 +275,7 @@ class MainIntentHandlerTest {
 	@Tags({ @Tag("not-found"), @Tag("radius") })
 	void shouldReturnNoGasStationFoundIfNoGasStationsInRequestedRadius() throws Exception {
 		Address address = new Address("54Bis rue Cler", "Paris", "75002");
-		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString())).thenReturn(address);
+		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenReturn(address);
 		Position position = new Position(43.6f, 4.08f);
 		when(positionProvider.getByAddress(any())).thenReturn(Optional.of(position));
 		when(dataProvider.getGasStationsWithinRadius(any(), anyInt())).thenReturn(emptyList());
@@ -320,8 +319,7 @@ class MainIntentHandlerTest {
 	@Test
 	@Tags({ @Tag("address-inaccessible"), @Tag("radius") })
 	void shouldReturnErrorIfDeviceAddressProviderThrowsAddressInaccessibleException() throws Exception {
-		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString()))
-				.thenThrow(AddressInaccessibleException.class);
+		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenThrow(AddressInaccessibleException.class);
 
 		Response resp = underTest.handle(buildRadiusInput(SP95, "10", true)).orElseThrow(MissingResponse::new);
 
@@ -345,8 +343,7 @@ class MainIntentHandlerTest {
 	@Test
 	@Tags({ @Tag("address-forbidden"), @Tag("radius") })
 	void shouldRequestPermissionsIfDeviceAddressProviderThrowsAnAddressForbiddenException() throws Exception {
-		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString()))
-				.thenThrow(AddressForbiddenException.class);
+		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenThrow(AddressForbiddenException.class);
 
 		Response resp = underTest.handle(buildRadiusInput(SP95, "10", true)).orElseThrow(MissingResponse::new);
 
@@ -394,7 +391,7 @@ class MainIntentHandlerTest {
 	@Tags({ @Tag("unknown-position"), @Tag("radius") })
 	void shouldReturnUnknownPositionIfThePositionCouldNotBeDetermined() throws Exception {
 		Address address = new Address("54 rue Cler", "Paris", "75002");
-		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString())).thenReturn(address);
+		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenReturn(address);
 		when(positionProvider.getByAddress(any())).thenReturn(Optional.empty());
 
 		Response resp = underTest.handle(buildRadiusInput(SP95, "10", true)).orElseThrow(MissingResponse::new);
