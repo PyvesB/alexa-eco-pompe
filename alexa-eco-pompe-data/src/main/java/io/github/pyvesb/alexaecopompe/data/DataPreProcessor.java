@@ -58,7 +58,7 @@ public class DataPreProcessor implements RequestHandler<Void, Void> {
 		this.amazonS3 = amazonS3;
 		this.dataLocation = dataLocation;
 	}
-	
+
 	@Override
 	public Void handleRequest(Void nothing, Context context) {
 		try {
@@ -76,6 +76,7 @@ public class DataPreProcessor implements RequestHandler<Void, Void> {
 		try (InputStream dataStream = dataURL.openStream(); ZipInputStream zipInputStream = new ZipInputStream(dataStream)) {
 			zipInputStream.getNextEntry();
 			List<GasStation> gasStations = parse(zipInputStream);
+			removeNoPrices(gasStations);
 			sortByLatitude(gasStations);
 			ByteArrayOutputStream byteArrayOutputStream = serialise(gasStations);
 			uploadToS3(byteArrayOutputStream);
@@ -85,6 +86,12 @@ public class DataPreProcessor implements RequestHandler<Void, Void> {
 	private List<GasStation> parse(InputStream inputStream) throws IOException {
 		LOGGER.info("Parsing gas station data");
 		return READER.readValue(inputStream);
+	}
+
+	private void removeNoPrices(List<GasStation> gasStations) {
+		int initialSize = gasStations.size();
+		gasStations.removeIf(gs -> gs.getPrices() == null);
+		LOGGER.info("Removed {} gas stations which don't have any prices specified", (initialSize - gasStations.size()));
 	}
 
 	private void sortByLatitude(List<GasStation> gasStations) {

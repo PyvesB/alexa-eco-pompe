@@ -11,6 +11,7 @@ import static io.github.pyvesb.alexaecopompe.domain.GasType.SP98;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
@@ -98,6 +99,27 @@ class DataPreProcessorTest {
 			assertEquals(asList(gs1, gs2), actualGasStations);
 		}
 		verifyNoMoreInteractions(amazonS3);
+	}
+
+	@Test
+	void shouldFilterOutGasStationsWithoutAnyPrices() throws Exception {
+		wireMockServer.stubFor(get(urlEqualTo(DATA_PATH))
+				.willReturn(aResponse()
+						.withStatus(HTTP_OK)
+						.withHeader("Content-Type", "application/octet-stream")
+						.withBodyFile("PrixCarburants_instantane_no_prices.zip")));
+
+		underTest.handleRequest(null, null);
+
+		verify(amazonS3).putObject(putObjectRequestCaptor.capture());
+		PutObjectRequest putObjectRequest = putObjectRequestCaptor.getValue();
+		 assertEquals(8L, putObjectRequest.getMetadata().getContentLength());
+
+		try (InflaterInputStream inflaterInputStream = new InflaterInputStream(putObjectRequest.getInputStream())) {
+			List<GasStation> actualGasStations = ProtostuffIOUtil.parseListFrom(inflaterInputStream,
+					RuntimeSchema.getSchema(GasStation.class));
+			assertEquals(emptyList(), actualGasStations);
+		}
 	}
 
 	@Test

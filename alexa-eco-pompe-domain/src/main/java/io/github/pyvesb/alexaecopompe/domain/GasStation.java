@@ -76,7 +76,7 @@ public final class GasStation {
 	}
 
 	public Optional<Price> getPriceForGasType(GasType gasType) {
-		return prices == null ? Optional.empty() : prices.stream().filter(p -> p.getType() == gasType).findAny();
+		return prices.stream().filter(p -> p.getType() == gasType).findAny();
 	}
 
 	@Override

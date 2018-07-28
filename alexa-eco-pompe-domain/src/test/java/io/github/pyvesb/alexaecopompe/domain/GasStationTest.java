@@ -35,11 +35,4 @@ class GasStationTest {
 		assertEquals(price2, actualPrice2.get());
 	}
 
-	@Test
-	void shouldReturnEmptyPriceIfPricesAreNull() {
-		GasStation underTest = new GasStation("1", 4.076f, 43.561f, "75001", "Paris", "rue Cler");
-
-		assertFalse(underTest.getPriceForGasType(GasType.E85).isPresent());
-	}
-
 }
