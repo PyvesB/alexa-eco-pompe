@@ -228,7 +228,7 @@ class MainIntentHandlerTest {
 	@ParameterizedTest
 	@EnumSource(GasType.class)
 	@Tags({ @Tag("not-found"), @Tag("town") })
-	void shouldReturnNoGasStationFoundIfNoGasStationsSellTheRequestedGasType(GasType gasType) {
+	void shouldReturnNoGasStationFoundForTypeIfNoGasStationsSellTheRequestedGasTypeInRequestedTown(GasType gasType) {
 		GasStation gs = new GasStation("1", 43.561f, 4.076f, "75001", "paris", "Place Vendôme");
 		when(dataProvider.getGasStationsForPostCodes(any())).thenReturn(asList(gs));
 
@@ -236,9 +236,28 @@ class MainIntentHandlerTest {
 
 		assertTrue(resp.getShouldEndSession());
 		assertNull(resp.getCard());
-		assertSpeech("Je n'ai pas trouvé de pompe vendant " + gasType.getSpeechText() + " dans Paris.", resp);
-		verify(dataProvider).getGasStationsForPostCodes("75001");
-		verify(gasStationPriceSorter).sortGasStationsByIncreasingPricesForGasType(asList(gs), gasType);
+		assertSpeech("Je n'ai pas trouvé de pompe vendant " + gasType.getSpeechText()
+				+ " dans Paris. Éssayez un autre carburant ou une ville différente.", resp);
+	}
+
+	@ParameterizedTest
+	@EnumSource(GasType.class)
+	@Tags({ @Tag("not-found"), @Tag("radius") })
+	void shouldReturnNoGasStationFoundForTypeIfNoGasStationsSellTheRequestedGasTypeInRequestedRadius(GasType gasType)
+			throws Exception {
+		Address address = new Address("54Bis rue Cler", "Paris", "75002");
+		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString())).thenReturn(address);
+		Position position = new Position(43.6f, 4.08f);
+		when(positionProvider.getByAddress(any())).thenReturn(Optional.of(position));
+		GasStation gs = new GasStation("1", 43.561f, 4.076f, "75001", "paris", "Place Vendôme");
+		when(dataProvider.getGasStationsWithinRadius(any(), anyInt())).thenReturn(asList(gs));
+
+		Response resp = underTest.handle(buildRadiusInput(gasType, "10", true)).orElseThrow(MissingResponse::new);
+
+		assertTrue(resp.getShouldEndSession());
+		assertNull(resp.getCard());
+		assertSpeech("Je n'ai pas trouvé de pompe vendant " + gasType.getSpeechText() + " à moins de 10 kilomètres. "
+				+ "Réessayez en spécifiant un autre carburant ou une distance plus grande.", resp);
 	}
 
 	@Test
@@ -250,7 +269,24 @@ class MainIntentHandlerTest {
 
 		assertTrue(resp.getShouldEndSession());
 		assertNull(resp.getCard());
-		assertSpeech("Je n'ai pas trouvé de pompe vendant du gazole dans Paris.", resp);
+		assertSpeech("Je n'ai pas trouvé de pompe dans Paris. Éssayez une ville différente.", resp);
+	}
+
+	@Test
+	@Tags({ @Tag("not-found"), @Tag("radius") })
+	void shouldReturnNoGasStationFoundIfNoGasStationsInRequestedRadius() throws Exception {
+		Address address = new Address("54Bis rue Cler", "Paris", "75002");
+		when(deviceAddressProvider.fetchAddress(anyString(), anyString(), anyString())).thenReturn(address);
+		Position position = new Position(43.6f, 4.08f);
+		when(positionProvider.getByAddress(any())).thenReturn(Optional.of(position));
+		when(dataProvider.getGasStationsWithinRadius(any(), anyInt())).thenReturn(emptyList());
+
+		Response resp = underTest.handle(buildRadiusInput(SP95, "10", true)).orElseThrow(MissingResponse::new);
+
+		assertTrue(resp.getShouldEndSession());
+		assertNull(resp.getCard());
+		assertSpeech("Je n'ai pas trouvé de pompe à moins de 10 kilomètres. Réessayez en spécifiant une distance "
+				+ "plus grande.", resp);
 	}
 
 	@TestFactory

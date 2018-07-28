@@ -6,7 +6,10 @@ import static io.github.pyvesb.alexaecopompe.speech.Messages.INCORRECT_RADIUS;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.LOCATION_BAD_REQUEST;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.MISSING_PERMS;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.NAME;
-import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_FOUND;
+import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_FOR_TYPE_RADIUS;
+import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_FOR_TYPE_TOWN;
+import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_RADIUS;
+import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_TOWN;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.POSITION_UNKNOWN;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.RADIUS_BAD_REQUEST;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.STATION_FOUND;
@@ -145,7 +148,7 @@ public class MainIntentHandler implements RequestHandler {
 			}
 			GasType gasType = GasType.fromId(gasId.get());
 			LOGGER.info("Location request (gas={}, location={})", gasType, locationSlot.getValue());
-			return handleGasStationList(respBuilder, gasType, gasStations, Optional.ofNullable(town));
+			return handleGasStationList(respBuilder, gasType, gasStations, Optional.ofNullable(town), Optional.empty());
 		}
 		LOGGER.warn("Null slot(s) (gasSlot={}, locationSlot={})", gasSlot, locationSlot);
 		return respBuilder.withSpeech(LOCATION_BAD_REQUEST).withReprompt(LOCATION_BAD_REQUEST).build();
@@ -175,7 +178,7 @@ public class MainIntentHandler implements RequestHandler {
 					List<GasStation> gasStations = dataProvider.getGasStationsWithinRadius(position.get(), radius);
 					GasType gasType = GasType.fromId(gasId.get());
 					LOGGER.info("Radius request (gas={}, radius={})", gasType, radius);
-					return handleGasStationList(respBuilder, gasType, gasStations, Optional.empty());
+					return handleGasStationList(respBuilder, gasType, gasStations, Optional.empty(), Optional.of(radius));
 				}
 				LOGGER.warn("Unknown position (address={})", address);
 				return respBuilder.withSpeech(POSITION_UNKNOWN).withShouldEndSession(true).build();
@@ -213,7 +216,7 @@ public class MainIntentHandler implements RequestHandler {
 	}
 
 	private Optional<Response> handleGasStationList(ResponseBuilder respBuilder, GasType gasType,
-			List<GasStation> gasStations, Optional<String> town) {
+			List<GasStation> gasStations, Optional<String> town, Optional<Integer> radius) {
 		if (!gasStations.isEmpty()) {
 			gasStationPriceSorter.sortGasStationsByIncreasingPricesForGasType(gasStations, gasType);
 			GasStation cheapestGasStation = gasStations.get(0);
@@ -231,10 +234,19 @@ public class MainIntentHandler implements RequestHandler {
 					return buildGasStationResponse(respBuilder, cheapestGasStation, price.get(), town, STATION_FOUND_E10);
 				}
 			}
+			String text = radius.isPresent()
+					? StringUtils.replaceEach(NO_STATION_FOR_TYPE_RADIUS, new String[] { "$TYPE", "$RADIUS" },
+							new String[] { gasType.getSpeechText(), radius.get().toString() })
+					: StringUtils.replaceEach(NO_STATION_FOR_TYPE_TOWN, new String[] { "$TYPE", "$LOCATION" },
+							new String[] { gasType.getSpeechText(), town.orElse("ce département") });
+			LOGGER.info("No station found for type (gas={}, location={})", gasType,
+					town.orElseGet(() -> radius.get() + "km"));
+			return respBuilder.withSpeech(text).withShouldEndSession(true).build();
 		}
-		String text = StringUtils.replaceEach(NO_STATION_FOUND, new String[] { "$TYPE", "$LOCATION" },
-				new String[] { gasType.getSpeechText(), town.orElse("les environs") });
-		LOGGER.info("No station found (gas={}, location={})", gasType, town.orElse("other"));
+		String text = radius.isPresent()
+				? StringUtils.replaceOnce(NO_STATION_RADIUS, "$RADIUS", radius.get().toString())
+				: StringUtils.replaceOnce(NO_STATION_TOWN, "$LOCATION", town.orElse("ce département"));
+		LOGGER.info("No station found (location={})", town.orElseGet(() -> radius.get() + "km"));
 		return respBuilder.withSpeech(text).withShouldEndSession(true).build();
 	}
 
