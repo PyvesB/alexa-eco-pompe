@@ -26,13 +26,11 @@ class GasStationTest {
 
 		Optional<Price> actualPrice1 = underTest.getPriceForGasType(GasType.E85);
 
-		assertTrue(actualPrice1.isPresent());
-		assertEquals(price1, actualPrice1.get());
+		assertEquals(Optional.of(price1), actualPrice1);
 
 		Optional<Price> actualPrice2 = underTest.getPriceForGasType(GasType.SP98);
 
-		assertTrue(actualPrice2.isPresent());
-		assertEquals(price2, actualPrice2.get());
+		assertEquals(Optional.of(price2), actualPrice2);
 	}
 
 }

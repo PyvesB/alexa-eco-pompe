@@ -14,7 +14,6 @@ import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
@@ -27,8 +26,6 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
 import io.github.pyvesb.alexaecopompe.address.Address;
-import io.github.pyvesb.alexaecopompe.geography.Position;
-import io.github.pyvesb.alexaecopompe.geography.PositionProvider;
 
 class PositionProviderTest {
 
@@ -62,8 +59,7 @@ class PositionProviderTest {
 
 		Optional<Position> position = underTest.getByAddress(ADDRESS);
 
-		assertTrue(position.isPresent());
-		assertEquals(new Position(48.8674634f, 2.32942811682519f), position.get());
+		assertEquals(Optional.of(new Position(48.8674634f, 2.32942811682519f)), position);
 	}
 
 	@Test
@@ -84,8 +80,7 @@ class PositionProviderTest {
 
 		Optional<Position> position = underTest.getByAddress(ADDRESS);
 
-		assertTrue(position.isPresent());
-		assertEquals(new Position(48.8674634f, 2.32942811682519f), position.get());
+		assertEquals(Optional.of(new Position(48.8674634f, 2.32942811682519f)), position);
 	}
 
 	@Test
@@ -98,7 +93,7 @@ class PositionProviderTest {
 
 		Optional<Position> position = underTest.getByAddress(ADDRESS);
 
-		assertFalse(position.isPresent());
+		assertEquals(Optional.empty(), position);
 	}
 
 	@Test
@@ -110,7 +105,7 @@ class PositionProviderTest {
 
 		Optional<Position> position = underTest.getByAddress(ADDRESS);
 
-		assertFalse(position.isPresent());
+		assertEquals(Optional.empty(), position);
 	}
 
 	@Test
@@ -124,7 +119,7 @@ class PositionProviderTest {
 
 		Optional<Position> position = underTest.getByAddress(ADDRESS);
 
-		assertFalse(position.isPresent());
+		assertEquals(Optional.empty(), position);
 	}
 
 	@Test

@@ -1,14 +1,10 @@
 package io.github.pyvesb.alexaecopompe.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
-
-import io.github.pyvesb.alexaecopompe.data.NameProvider;
 
 
 class NameProviderTest {
@@ -17,15 +13,12 @@ class NameProviderTest {
 
 	@Test
 	void shouldGetGasStationNameById() {
-		Optional<String> name = underTest.getById("1");
-		
-		assertTrue(name.isPresent());
-		assertEquals("Pyves Gas", name.get());
+		assertEquals(Optional.of("Pyves Gas"), underTest.getById("1"));
 	}
 	
 	@Test
 	void shouldReturnEmptyOptionalIfIdNotFound() {
-		assertFalse(underTest.getById("2").isPresent());
+		assertEquals(Optional.empty(), underTest.getById("2"));
 	}
 
 }
