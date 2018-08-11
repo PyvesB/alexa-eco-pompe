@@ -3,17 +3,10 @@ package io.github.pyvesb.alexaecopompe.domain;
 import java.time.LocalDate;
 import java.util.Objects;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 public final class Price {
 
-	@JacksonXmlProperty(localName = "id", isAttribute = true)
 	private GasType type;
-	@JsonDeserialize(using = LocalDateDeserializer.class)
-	@JacksonXmlProperty(localName = "maj", isAttribute = true)
 	private LocalDate updated;
-	@JacksonXmlProperty(localName = "valeur", isAttribute = true)
 	private float value;
 
 	public Price() {}

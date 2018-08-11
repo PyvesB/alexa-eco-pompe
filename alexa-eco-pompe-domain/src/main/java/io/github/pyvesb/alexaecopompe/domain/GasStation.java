@@ -6,10 +6,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 public final class GasStation {
 
 	private static final float COORDINATE_SCALE_DOWN_FACTOR = 100000f;
@@ -27,14 +23,8 @@ public final class GasStation {
 		this(id, latitude, longitude, postCode, town, address, asList(prices));
 	}
 
-	@JsonCreator
-	public GasStation(@JacksonXmlProperty(localName = "id", isAttribute = true) String id,
-			@JacksonXmlProperty(localName = "latitude", isAttribute = true) float latitude,
-			@JacksonXmlProperty(localName = "longitude", isAttribute = true) float longitude,
-			@JacksonXmlProperty(localName = "cp", isAttribute = true) String postCode,
-			@JacksonXmlProperty(localName = "ville") String town,
-			@JacksonXmlProperty(localName = "adresse") String address,
-			@JacksonXmlProperty(localName = "prix") List<Price> prices) {
+	public GasStation(String id, float latitude, float longitude, String postCode, String town, String address,
+			List<Price> prices) {
 		this.id = id;
 		// The input data has both coordinate values scaled up by 100000.
 		this.latitude = latitude / COORDINATE_SCALE_DOWN_FACTOR;
@@ -69,8 +59,6 @@ public final class GasStation {
 		return address;
 	}
 
-	@JacksonXmlProperty(localName = "prix")
-	@JacksonXmlElementWrapper(useWrapping = false)
 	public List<Price> getPrices() {
 		return prices;
 	}
