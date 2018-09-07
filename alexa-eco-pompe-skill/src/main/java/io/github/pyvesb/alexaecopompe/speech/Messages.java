@@ -16,7 +16,7 @@ public enum Messages {;
 	public static final String NO_STATION_FOR_TYPE_RADIUS = "Je n'ai pas trouvé de pompe vendant $TYPE à moins de $RADIUS kilomètres. Réessayez en spécifiant un autre carburant ou une distance plus grande.";
 	public static final String UNSUPPORTED_GAS_TYPE = "Je n'ai pas compris le carburant demandé. Veuillez réessayer en utilisant gazole, sans plomb 95, sans plomb 98, E10, E85 ou GPL.";
 	public static final String UNSUPPORTED_LOCATION = "Je n'ai pas trouvé d'informations pour cette localisation géographique. Veuillez réessayer en énonçant clairement un nom de ville ou de département.";
-	public static final String INCORRECT_RADIUS = "Veuillez fournir une distance comprise entre 1 et 30 kilomètres. Par exemple : \"le sans plomb 95 à moins de 10 kilomètres\".";
+	public static final String INCORRECT_RADIUS = "Veuillez fournir une distance comprise entre 1 et 50 kilomètres. Par exemple : \"le sans plomb 95 à moins de 10 kilomètres\".";
 	public static final String LOCATION_BAD_REQUEST = "Veuillez réessayer en fournissant un carburant suivi d'une ville ou d'un département. Par exemple : \"le sans plomb 98 à Paris\" ou \"le gazole dans la Creuse\".";
 	public static final String RADIUS_BAD_REQUEST = "Veuillez réessayer en fournissant un carburant suivi d'une distance. Par exemple : \"le sans plomb 95 à moins de 10 kilomètres\".";
 	public static final String MISSING_PERMS = "J'ai besoin de votre adresse pour trouver les pompes à proximité. Veuillez autoriser l'accès dans l'application Alexa, ou bien précisez un nom de ville ou de département.";

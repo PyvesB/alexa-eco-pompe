@@ -305,14 +305,14 @@ class MainIntentHandlerTest {
 	}
 
 	@ParameterizedTest
-	@ValueSource(strings = { "0", "31", "" })
+	@ValueSource(strings = { "0", "51", "" })
 	@Tags({ @Tag("incorrect-radius"), @Tag("radius") })
 	void shouldReturnIncorrectRadiusIfTheProvidedRadiusIsNotBetween1And20(String radius) {
 		Response resp = underTest.handle(buildRadiusInput(SP95, radius, true)).orElseThrow(MissingResponse::new);
 
 		assertFalse(resp.getShouldEndSession());
 		assertNull(resp.getCard());
-		assertSpeech("Veuillez fournir une distance comprise entre 1 et 30 kilomètres. Par exemple : "
+		assertSpeech("Veuillez fournir une distance comprise entre 1 et 50 kilomètres. Par exemple : "
 				+ "\"le sans plomb 95 à moins de 10 kilomètres\".", resp);
 	}
 
