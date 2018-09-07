@@ -1,6 +1,7 @@
 package io.github.pyvesb.alexaecopompe.address;
 
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -10,6 +11,8 @@ import org.apache.commons.lang3.StringUtils;
  * it's not intended for public use at this point. This more lightweight class can be used for the time being.
  */
 public class Address {
+
+	private static final Pattern STREET_NUMBER = Pattern.compile("[0-9]+[A-z]*\\s");
 
 	private String addressLine1;
 	private String city;
@@ -64,7 +67,8 @@ public class Address {
 	public String toNormalisedString() {
 		// Normalised representation of the address that can easily be understood by geocoding APIs. Leading street
 		// numbers (e.g. 54, 36bis) are suppressed.
-		return StringUtils.joinWith(" ", StringUtils.replaceAll(addressLine1, "[0-9]+[A-z]* ", ""), city, postalCode);
+		String addressWithoutStreetNumber = addressLine1 == null ? "" : STREET_NUMBER.matcher(addressLine1).replaceAll("");
+		return StringUtils.joinWith(" ", addressWithoutStreetNumber, city, postalCode);
 	}
 
 	public String toSimplifiedString() {
