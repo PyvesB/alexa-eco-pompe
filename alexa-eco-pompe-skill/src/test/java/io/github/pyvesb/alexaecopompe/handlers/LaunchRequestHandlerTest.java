@@ -32,8 +32,8 @@ class LaunchRequestHandlerTest {
 		Response resp = underTest.handle(buildLaunchInput()).orElseThrow(MissingResponse::new);
 
 		assertFalse(resp.getShouldEndSession());
-		assertSpeech("Bienvenue ! Je peux trouver le carburant le moins cher par ville, par département ou près "
-				+ "de chez vous. Dîtes \"aide\" pour obtenir les instructions.", resp);
+		assertSpeech("Bienvenue ! Je peux trouver le carburant le moins cher par ville, par département ou près de "
+				+ "chez vous. Dîtes \"aide\" pour obtenir les instructions, ou \"stop\" pour quitter Éco Pompe.", resp);
 		assertNull(resp.getCard());
 	}
 

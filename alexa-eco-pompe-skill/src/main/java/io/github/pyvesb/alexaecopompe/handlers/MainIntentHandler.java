@@ -244,7 +244,9 @@ public class MainIntentHandler implements RequestHandler {
 			return respBuilder.withSpeech(text).withShouldEndSession(true).build();
 		}
 		String text = radius.isPresent()
-				? StringUtils.replaceOnce(NO_STATION_RADIUS, "$RADIUS", radius.get().toString())
+				? StringUtils.replaceEach(NO_STATION_RADIUS, new String[] { "$RADIUS", "$TYPE", "$BIGGER_RADIUS" },
+						new String[] { radius.get().toString(), gasType.getDisplayName(),
+								Integer.toString(Math.min(RADIUS_UPPER_BOUND, radius.get() + 5)) })
 				: StringUtils.replaceOnce(NO_STATION_TOWN, "$LOCATION", town.orElse("ce département"));
 		LOGGER.info("No station found (location={})", town.orElseGet(() -> radius.get() + "km"));
 		return respBuilder.withSpeech(text).withShouldEndSession(true).build();

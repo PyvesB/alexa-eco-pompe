@@ -285,7 +285,7 @@ class MainIntentHandlerTest {
 		assertTrue(resp.getShouldEndSession());
 		assertNull(resp.getCard());
 		assertSpeech("Je n'ai pas trouvé de pompe à moins de 10 kilomètres. Réessayez en spécifiant une distance "
-				+ "plus grande.", resp);
+				+ "plus grande. Par exemple, dîtes simplement : \"le Sans Plomb 95 à moins de 15 kilomètres\".", resp);
 	}
 
 	@TestFactory
@@ -299,8 +299,9 @@ class MainIntentHandlerTest {
 					Response resp = underTest.handle(input).orElseThrow(MissingResponse::new);
 					assertFalse(resp.getShouldEndSession());
 					assertNull(resp.getCard());
-					assertSpeech("Je n'ai pas compris le carburant demandé. Veuillez réessayer en utilisant gazole, "
-							+ "sans plomb 95, sans plomb 98, E10, E85 ou GPL.", resp);
+					assertSpeech("Je n'ai pas compris le carburant demandé. Réessayez en spécifiant gazole, sans plomb 95, "
+							+ "sans plomb 98, E10, E85 ou GPL. Par exemple, dîtes simplement : \"le gazole à Bordeaux\".",
+							resp);
 				}));
 	}
 
@@ -360,8 +361,8 @@ class MainIntentHandlerTest {
 
 		assertFalse(resp.getShouldEndSession());
 		assertNull(resp.getCard());
-		assertSpeech("Je n'ai pas trouvé d'informations pour cette localisation géographique. Veuillez réessayer en "
-				+ "énonçant clairement un nom de ville ou de département.", resp);
+		assertSpeech("Je n'ai pas trouvé d'informations pour cette localisation géographique. Réessayez en énonçant "
+				+ "clairement le nom de ville ou de département, ou bien spécifiez un lieu différent.", resp);
 	}
 
 	@TestFactory

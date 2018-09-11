@@ -40,7 +40,7 @@ class CancelStopIntentHandlerTest {
 		Response resp = underTest.handle(buildIntentInput("AMAZON.CancelIntent")).orElseThrow(MissingResponse::new);
 
 		assertTrue(resp.getShouldEndSession());
-		assertSpeech("D'accord. À bientôt !", resp);
+		assertSpeech("À bientôt sur Éco Pompe !", resp);
 		assertNull(resp.getCard());
 	}
 
