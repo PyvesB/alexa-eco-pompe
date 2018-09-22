@@ -50,8 +50,8 @@ public class InputBuilder {
 		return buildInput(intentRequest);
 	}
 
-	public static HandlerInput buildIntentInputWithGasSlot(String intentName, GasType gasType) {
-		Slot gasSlot = Slot.builder().withName("gas").withValue(gasType == null ? null : gasType.name()).build();
+	public static HandlerInput buildIntentInputWithNoGasValue(String intentName) {
+		Slot gasSlot = Slot.builder().withName("gas").withValue(null).build();
 		Intent intent = Intent.builder().withName(intentName).withSlots(Collections.singletonMap("gas", gasSlot)).build();
 		IntentRequest intentRequest = IntentRequest.builder().withIntent(intent).build();
 		return buildInput(intentRequest);

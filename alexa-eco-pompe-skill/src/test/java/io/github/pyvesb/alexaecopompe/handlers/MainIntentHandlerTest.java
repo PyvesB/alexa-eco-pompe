@@ -19,7 +19,7 @@ import static utils.InputBuilder.API_ENDPOINT;
 import static utils.InputBuilder.DEVICE_ID;
 import static utils.InputBuilder.buildDepartmentInput;
 import static utils.InputBuilder.buildIntentInput;
-import static utils.InputBuilder.buildIntentInputWithGasSlot;
+import static utils.InputBuilder.buildIntentInputWithNoGasValue;
 import static utils.InputBuilder.buildLaunchInput;
 import static utils.InputBuilder.buildNearbyInput;
 import static utils.InputBuilder.buildRadiusInput;
@@ -367,8 +367,7 @@ class MainIntentHandlerTest {
 	@Test
 	@Tags({ @Tag("missing-slot") })
 	void shouldDelegateDirectiveForMissingGasType() throws Exception {
-		Response resp = underTest.handle(buildIntentInputWithGasSlot("AnyIntent", null))
-				.orElseThrow(MissingResponse::new);
+		Response resp = underTest.handle(buildIntentInputWithNoGasValue("AnyIntent")).orElseThrow(MissingResponse::new);
 
 		assertNotNull(resp.getDirectives());
 	}
@@ -386,16 +385,6 @@ class MainIntentHandlerTest {
 		assertNull(resp.getCard());
 		assertSpeech("Je n'ai pas réussi à déterminer votre position géographique avec l'adresse renseignée dans "
 				+ "votre Amazon Echo. Réessayez plus tard, ou bien précisez un nom de ville ou de département.", resp);
-	}
-
-	@Test
-	@Tag("unsupported-intent")
-	void shouldReturnUnsupportedResponseForUnsupportedIntentName() {
-		Response resp = underTest.handle(buildIntentInputWithGasSlot("Unsupported", SP95)).orElseThrow(MissingResponse::new);
-
-		assertFalse(resp.getShouldEndSession());
-		assertNull(resp.getCard());
-		assertSpeech("Je n'ai pas compris. Réessayez, ou bien dîtes \"aide\" pour obtenir les instructions.", resp);
 	}
 
 }

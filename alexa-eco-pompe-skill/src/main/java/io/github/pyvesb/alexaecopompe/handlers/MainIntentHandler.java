@@ -12,7 +12,6 @@ import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_TOWN;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.POSITION_UNKNOWN;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.STATION_FOUND;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.STATION_FOUND_E10;
-import static io.github.pyvesb.alexaecopompe.speech.Messages.UNSUPPORTED;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.UNSUPPORTED_GAS_TYPE;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.UNSUPPORTED_LOCATION;
 import static java.lang.System.getenv;
@@ -120,11 +119,9 @@ public class MainIntentHandler implements RequestHandler {
 		} else if ("GasRadius".equals(intentName)) {
 			return handleRadiusRequest(input.getResponseBuilder(), gasSlot, slots.get("radius"),
 					envelope.getContext().getSystem(), session.getUser());
-		} else if ("GasNearby".equals(intentName)) {
-			return handleRadiusRequest(input.getResponseBuilder(), gasSlot, DEFAULT_RADIUS,
-					envelope.getContext().getSystem(), session.getUser());
 		}
-		return input.getResponseBuilder().withSpeech(UNSUPPORTED).withReprompt(UNSUPPORTED).build();
+		return handleRadiusRequest(input.getResponseBuilder(), gasSlot, DEFAULT_RADIUS, envelope.getContext().getSystem(),
+				session.getUser());
 	}
 
 	private Optional<Response> handleMissingGasValue(HandlerInput input, Intent intent) {

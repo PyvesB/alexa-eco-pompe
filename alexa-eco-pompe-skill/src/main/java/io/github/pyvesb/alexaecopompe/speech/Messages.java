@@ -7,7 +7,6 @@ public enum Messages {;
 	public static final String LAUNCH = "Bienvenue ! Je peux trouver le carburant le moins cher par ville, par département ou près de chez vous. Dîtes \"aide\" pour obtenir les instructions, ou \"stop\" pour quitter Éco Pompe.";
 	public static final String HELP = "Spécifiez un carburant suivi d'une ville, d'un département ou d'une distance. Par exemple : \"le sans plomb 98 à Lyon\", \"le gazole dans la Creuse\", ou \"l'E10 à moins de 10 kilomètres\".";
 	public static final String CANCEL_STOP = "À bientôt sur Éco Pompe !";
-	public static final String UNSUPPORTED = "Je n'ai pas compris. Réessayez, ou bien dîtes \"aide\" pour obtenir les instructions.";
 	public static final String STATION_FOUND = "$NAME vend $TYPE pour $PRICE. $SUBJECT est située $ADDRESS à $TOWN, et a actualisé ses tarifs $DATE.";
 	public static final String STATION_FOUND_E10 = "Je n'ai pas trouvé de pompe vendant du sans plomb 95. Cependant, $NAME vend de l'E10 pour $PRICE. $SUBJECT est située $ADDRESS à $TOWN, et a actualisé ses tarifs $DATE.";
 	public static final String NO_STATION_TOWN = "Je n'ai pas trouvé de pompe dans $LOCATION. Éssayez une ville différente.";
