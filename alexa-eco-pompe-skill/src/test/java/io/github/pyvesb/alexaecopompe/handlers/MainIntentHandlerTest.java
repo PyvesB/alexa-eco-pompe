@@ -3,11 +3,10 @@ package io.github.pyvesb.alexaecopompe.handlers;
 import static io.github.pyvesb.alexaecopompe.domain.GasType.E10;
 import static io.github.pyvesb.alexaecopompe.domain.GasType.GAZOLE;
 import static io.github.pyvesb.alexaecopompe.domain.GasType.SP95;
-import static io.github.pyvesb.alexaecopompe.domain.GasType.SP98;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.DynamicTest.dynamicTest;
@@ -20,6 +19,7 @@ import static utils.InputBuilder.API_ENDPOINT;
 import static utils.InputBuilder.DEVICE_ID;
 import static utils.InputBuilder.buildDepartmentInput;
 import static utils.InputBuilder.buildIntentInput;
+import static utils.InputBuilder.buildIntentInputWithGasSlot;
 import static utils.InputBuilder.buildLaunchInput;
 import static utils.InputBuilder.buildNearbyInput;
 import static utils.InputBuilder.buildRadiusInput;
@@ -28,7 +28,6 @@ import static utils.ResponseAssertions.assertCard;
 import static utils.ResponseAssertions.assertCardWithPermissions;
 import static utils.ResponseAssertions.assertSpeech;
 import static utils.TestFactoryHelper.buildDynamicDisplayName;
-import static utils.TestFactoryHelper.getIntentName;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -365,27 +364,13 @@ class MainIntentHandlerTest {
 				+ "clairement le nom de ville ou de département, ou bien spécifiez un lieu différent.", resp);
 	}
 
-	@TestFactory
-	@Tags({ @Tag("missing-slots"), @Tag("town"), @Tag("radius") })
-	Stream<DynamicTest> shouldReturnErrorResponseIfRequiredSlotsAreMissing() {
-		HandlerInput input1 = buildTownInput(null, "Paris", "c05,75001,75002");
-		HandlerInput input2 = buildTownInput(SP98, null, null);
-		HandlerInput input3 = buildRadiusInput(null, "7", false);
-		HandlerInput input4 = buildRadiusInput(SP95, null, false);
+	@Test
+	@Tags({ @Tag("missing-slot") })
+	void shouldDelegateDirectiveForMissingGasType() throws Exception {
+		Response resp = underTest.handle(buildIntentInputWithGasSlot("AnyIntent", null))
+				.orElseThrow(MissingResponse::new);
 
-		return Stream.of(input1, input2, input3, input4).map(input -> dynamicTest(buildDynamicDisplayName(input),
-				() -> {
-					Response resp = underTest.handle(input).orElseThrow(MissingResponse::new);
-					assertFalse(resp.getShouldEndSession());
-					assertNull(resp.getCard());
-					if ("GasTown".equals(getIntentName(input))) {
-						assertSpeech("Veuillez réessayer en fournissant un carburant suivi d'une ville ou d'un département. "
-								+ "Par exemple : \"le sans plomb 98 à Paris\" ou \"le gazole dans la Creuse\".", resp);
-					} else {
-						assertSpeech("Veuillez réessayer en fournissant un carburant suivi d'une distance. Par exemple : "
-								+ "\"le sans plomb 95 à moins de 10 kilomètres\".", resp);
-					}
-				}));
+		assertNotNull(resp.getDirectives());
 	}
 
 	@Test
@@ -406,7 +391,7 @@ class MainIntentHandlerTest {
 	@Test
 	@Tag("unsupported-intent")
 	void shouldReturnUnsupportedResponseForUnsupportedIntentName() {
-		Response resp = underTest.handle(buildIntentInput("Unsupported", emptyMap())).orElseThrow(MissingResponse::new);
+		Response resp = underTest.handle(buildIntentInputWithGasSlot("Unsupported", SP95)).orElseThrow(MissingResponse::new);
 
 		assertFalse(resp.getShouldEndSession());
 		assertNull(resp.getCard());

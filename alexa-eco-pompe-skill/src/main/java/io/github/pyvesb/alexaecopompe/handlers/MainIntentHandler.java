@@ -3,7 +3,6 @@ package io.github.pyvesb.alexaecopompe.handlers;
 import static com.amazon.ask.request.Predicates.requestType;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.ADDRESS_ERROR;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.INCORRECT_RADIUS;
-import static io.github.pyvesb.alexaecopompe.speech.Messages.LOCATION_BAD_REQUEST;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.MISSING_PERMS;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.NAME;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_FOR_TYPE_RADIUS;
@@ -11,7 +10,6 @@ import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_FOR_TYPE
 import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_RADIUS;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_TOWN;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.POSITION_UNKNOWN;
-import static io.github.pyvesb.alexaecopompe.speech.Messages.RADIUS_BAD_REQUEST;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.STATION_FOUND;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.STATION_FOUND_E10;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.UNSUPPORTED;
@@ -112,85 +110,85 @@ public class MainIntentHandler implements RequestHandler {
 		LOGGER.info("Received intent (session={}, name={})", session.getSessionId(), intentName);
 
 		Map<String, Slot> slots = intent.getSlots();
-		if ("GasTown".equals(intentName)) {
-			return handleLocationRequest(input.getResponseBuilder(), slots.get("gas"), slots.get("town"));
+		Slot gasSlot = slots.get("gas");
+		if (gasSlot.getValue() == null) {
+			return handleMissingGasValue(input, intent);
+		} else if ("GasTown".equals(intentName)) {
+			return handleLocationRequest(input.getResponseBuilder(), gasSlot, slots.get("town"));
 		} else if ("GasDepartment".equals(intentName)) {
-			return handleLocationRequest(input.getResponseBuilder(), slots.get("gas"), slots.get("department"));
+			return handleLocationRequest(input.getResponseBuilder(), gasSlot, slots.get("department"));
 		} else if ("GasRadius".equals(intentName)) {
-			return handleRadiusRequest(input.getResponseBuilder(), slots.get("gas"), slots.get("radius"),
+			return handleRadiusRequest(input.getResponseBuilder(), gasSlot, slots.get("radius"),
 					envelope.getContext().getSystem(), session.getUser());
 		} else if ("GasNearby".equals(intentName)) {
-			return handleRadiusRequest(input.getResponseBuilder(), slots.get("gas"), DEFAULT_RADIUS,
+			return handleRadiusRequest(input.getResponseBuilder(), gasSlot, DEFAULT_RADIUS,
 					envelope.getContext().getSystem(), session.getUser());
 		}
 		return input.getResponseBuilder().withSpeech(UNSUPPORTED).withReprompt(UNSUPPORTED).build();
 	}
 
+	private Optional<Response> handleMissingGasValue(HandlerInput input, Intent intent) {
+		LOGGER.info("Gas type not specified in intent");
+		return input.getResponseBuilder().addDelegateDirective(intent).build();
+	}
+
 	private Optional<Response> handleLocationRequest(ResponseBuilder respBuilder, Slot gasSlot, Slot locationSlot) {
-		if (gasSlot != null && locationSlot != null) {
-			Optional<String> gasId = getSlotId(gasSlot);
-			if (!gasId.isPresent()) {
-				LOGGER.warn("Unsupported gas type (gas={})", gasSlot.getValue());
-				return respBuilder.withSpeech(UNSUPPORTED_GAS_TYPE).withReprompt(UNSUPPORTED_GAS_TYPE).build();
-			}
-			Optional<String> locationId = getSlotId(locationSlot);
-			if (!locationId.isPresent()) {
-				LOGGER.warn("Unsupported location (location={})", locationSlot.getValue());
-				return respBuilder.withSpeech(UNSUPPORTED_LOCATION).withReprompt(UNSUPPORTED_LOCATION).build();
-			}
-			List<GasStation> gasStations;
-			String town = null;
-			if ("town".equals(locationSlot.getName())) {
-				gasStations = dataProvider.getGasStationsForPostCodes(PostCodesExtractor.from(locationId.get()));
-				town = locationSlot.getValue();
-			} else {
-				gasStations = dataProvider.getGasStationsForDepartment(locationId.get());
-			}
-			GasType gasType = GasType.fromId(gasId.get());
-			LOGGER.info("Location request (gas={}, location={})", gasType, locationSlot.getValue());
-			return handleGasStationList(respBuilder, gasType, gasStations, Optional.ofNullable(town), Optional.empty());
+		Optional<String> gasId = getSlotId(gasSlot);
+		if (!gasId.isPresent()) {
+			LOGGER.warn("Unsupported gas type (gas={})", gasSlot.getValue());
+			return respBuilder.withSpeech(UNSUPPORTED_GAS_TYPE).withReprompt(UNSUPPORTED_GAS_TYPE).build();
 		}
-		LOGGER.warn("Null slot(s) (gasSlot={}, locationSlot={})", gasSlot, locationSlot);
-		return respBuilder.withSpeech(LOCATION_BAD_REQUEST).withReprompt(LOCATION_BAD_REQUEST).build();
+		Optional<String> locationId = getSlotId(locationSlot);
+		if (!locationId.isPresent()) {
+			LOGGER.warn("Unsupported location (location={})", locationSlot.getValue());
+			return respBuilder.withSpeech(UNSUPPORTED_LOCATION).withReprompt(UNSUPPORTED_LOCATION).build();
+		}
+		List<GasStation> gasStations;
+		String town = null;
+		if ("town".equals(locationSlot.getName())) {
+			gasStations = dataProvider.getGasStationsForPostCodes(PostCodesExtractor.from(locationId.get()));
+			town = locationSlot.getValue();
+		} else {
+			gasStations = dataProvider.getGasStationsForDepartment(locationId.get());
+		}
+		GasType gasType = GasType.fromId(gasId.get());
+		LOGGER.info("Location request (gas={}, location={})", gasType, locationSlot.getValue());
+		return handleGasStationList(respBuilder, gasType, gasStations, Optional.ofNullable(town), Optional.empty());
 	}
 
 	private Optional<Response> handleRadiusRequest(ResponseBuilder respBuilder, Slot gasSlot, Slot radiusSlot,
 			SystemState systemState, User user) {
-		if (gasSlot != null && radiusSlot != null) {
-			if (user.getPermissions() == null) {
-				return handleMissingPermissions(respBuilder);
-			}
-			Optional<String> gasId = getSlotId(gasSlot);
-			if (!gasId.isPresent()) {
-				LOGGER.warn("Unsupported gas type (gas={})", gasSlot.getValue());
-				return respBuilder.withSpeech(UNSUPPORTED_GAS_TYPE).withReprompt(UNSUPPORTED_GAS_TYPE).build();
-			}
-			int radius = NumberUtils.toInt(radiusSlot.getValue());
-			if (radius <= 0 || radius > RADIUS_UPPER_BOUND) {
-				LOGGER.info("Incorrect radius (radius={})", radiusSlot.getValue());
-				return respBuilder.withSpeech(INCORRECT_RADIUS).withReprompt(INCORRECT_RADIUS).build();
-			}
-			try {
-				Address address = deviceAddressProvider.fetchAddress(systemState.getApiEndpoint(),
-						systemState.getDevice().getDeviceId(), systemState.getApiAccessToken());
-				Optional<Position> position = positionProvider.getByAddress(address);
-				if (position.isPresent()) {
-					List<GasStation> gasStations = dataProvider.getGasStationsWithinRadius(position.get(), radius);
-					GasType gasType = GasType.fromId(gasId.get());
-					LOGGER.info("Radius request (gas={}, radius={})", gasType, radius);
-					return handleGasStationList(respBuilder, gasType, gasStations, Optional.empty(), Optional.of(radius));
-				}
-				LOGGER.warn("Unknown position (address={})", address);
-				return respBuilder.withSpeech(POSITION_UNKNOWN).withShouldEndSession(true).build();
-			} catch (AddressForbiddenException e) {
-				return handleMissingPermissions(respBuilder);
-			} catch (AddressInaccessibleException e) {
-				LOGGER.error("Amazon address error (endpoint={})", systemState.getApiEndpoint(), e);
-				return respBuilder.withSpeech(ADDRESS_ERROR).withShouldEndSession(true).build();
-			}
+		if (user.getPermissions() == null) {
+			return handleMissingPermissions(respBuilder);
 		}
-		LOGGER.warn("Null slot(s) (gasSlot={}, radiusSlot={})", gasSlot, radiusSlot);
-		return respBuilder.withSpeech(RADIUS_BAD_REQUEST).withReprompt(RADIUS_BAD_REQUEST).build();
+		Optional<String> gasId = getSlotId(gasSlot);
+		if (!gasId.isPresent()) {
+			LOGGER.warn("Unsupported gas type (gas={})", gasSlot.getValue());
+			return respBuilder.withSpeech(UNSUPPORTED_GAS_TYPE).withReprompt(UNSUPPORTED_GAS_TYPE).build();
+		}
+		int radius = NumberUtils.toInt(radiusSlot.getValue());
+		if (radius <= 0 || radius > RADIUS_UPPER_BOUND) {
+			LOGGER.info("Incorrect radius (radius={})", radiusSlot.getValue());
+			return respBuilder.withSpeech(INCORRECT_RADIUS).withReprompt(INCORRECT_RADIUS).build();
+		}
+		try {
+			Address address = deviceAddressProvider.fetchAddress(systemState.getApiEndpoint(),
+					systemState.getDevice().getDeviceId(), systemState.getApiAccessToken());
+			Optional<Position> position = positionProvider.getByAddress(address);
+			if (position.isPresent()) {
+				List<GasStation> gasStations = dataProvider.getGasStationsWithinRadius(position.get(), radius);
+				GasType gasType = GasType.fromId(gasId.get());
+				LOGGER.info("Radius request (gas={}, radius={})", gasType, radius);
+				return handleGasStationList(respBuilder, gasType, gasStations, Optional.empty(), Optional.of(radius));
+			}
+			LOGGER.warn("Unknown position (address={})", address);
+			return respBuilder.withSpeech(POSITION_UNKNOWN).withShouldEndSession(true).build();
+		} catch (AddressForbiddenException e) {
+			return handleMissingPermissions(respBuilder);
+		} catch (AddressInaccessibleException e) {
+			LOGGER.error("Amazon address error (endpoint={})", systemState.getApiEndpoint(), e);
+			return respBuilder.withSpeech(ADDRESS_ERROR).withShouldEndSession(true).build();
+		}
 	}
 
 	private Optional<Response> handleMissingPermissions(ResponseBuilder respBuilder) {

@@ -2,6 +2,7 @@ package utils;
 
 import static java.util.Collections.singletonList;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,66 +50,51 @@ public class InputBuilder {
 		return buildInput(intentRequest);
 	}
 
-	public static HandlerInput buildIntentInput(String intentName, Map<String, Slot> slots) {
-		Intent intent = Intent.builder().withName(intentName).withSlots(slots).build();
+	public static HandlerInput buildIntentInputWithGasSlot(String intentName, GasType gasType) {
+		Slot gasSlot = Slot.builder().withName("gas").withValue(gasType == null ? null : gasType.name()).build();
+		Intent intent = Intent.builder().withName(intentName).withSlots(Collections.singletonMap("gas", gasSlot)).build();
 		IntentRequest intentRequest = IntentRequest.builder().withIntent(intent).build();
 		return buildInput(intentRequest);
 	}
 
 	public static HandlerInput buildDepartmentInput(GasType gasType, String department, String deparmentId) {
 		Map<String, Slot> slots = new HashMap<>();
-		if (gasType != null) {
-			Resolutions resolutions = buildResolutions(gasType.name(), Integer.toString(gasType.getId()));
-			slots.put("gas", Slot.builder().withName("gas").withResolutions(resolutions).withValue(gasType.name()).build());
-		}
-		if (department != null) {
-			slots.put("department", Slot.builder().withName("department")
-					.withResolutions(buildResolutions("department", deparmentId)).withValue(department).build());
-		}
+		Resolutions resolutions = buildResolutions(gasType.name(), Integer.toString(gasType.getId()));
+		slots.put("gas", Slot.builder().withName("gas").withResolutions(resolutions).withValue(gasType.name()).build());
+		slots.put("department", Slot.builder().withName("department")
+				.withResolutions(buildResolutions("department", deparmentId)).withValue(department).build());
 		return buildIntentInput("GasDepartment", slots);
 	}
 
 	public static HandlerInput buildTownInput(GasType gasType, String town, String townId) {
-		return buildTownInput(gasType == null ? null : gasType.name(),
-				gasType == null ? null : Integer.toString(gasType.getId()), town, townId);
+		return buildTownInput(gasType.name(), Integer.toString(gasType.getId()), town, townId);
 	}
 
 	public static HandlerInput buildTownInput(String gas, String gasId, String town, String townId) {
 		Map<String, Slot> slots = new HashMap<>();
-		if (gas != null) {
-			slots.put("gas", Slot.builder().withName("gas").withResolutions(buildResolutions("gas", gasId)).withValue(gas)
-					.build());
-		}
-		if (town != null) {
-			slots.put("town", Slot.builder().withName("town").withResolutions(buildResolutions("town", townId))
-					.withValue(town).build());
-		}
+		slots.put("gas", Slot.builder().withName("gas").withResolutions(buildResolutions("gas", gasId)).withValue(gas)
+				.build());
+		slots.put("town", Slot.builder().withName("town").withResolutions(buildResolutions("town", townId))
+				.withValue(town).build());
 		return buildIntentInput("GasTown", slots);
 	}
 
 	public static HandlerInput buildRadiusInput(GasType gasType, String radius, boolean hasPerms) {
-		return buildRadiusInput(gasType == null ? null : gasType.name(),
-				gasType == null ? null : Integer.toString(gasType.getId()), radius, hasPerms);
+		return buildRadiusInput(gasType.name(), Integer.toString(gasType.getId()), radius, hasPerms);
 	}
 
 	public static HandlerInput buildRadiusInput(String gas, String gasId, String radius, boolean hasPerms) {
 		Map<String, Slot> slots = new HashMap<>();
-		if (gas != null) {
-			slots.put("gas", Slot.builder().withName("gas").withResolutions(buildResolutions(gas, gasId)).withValue(gas)
-					.build());
-		}
-		if (radius != null) {
-			slots.put("radius", Slot.builder().withName("radius").withValue(radius).build());
-		}
+		slots.put("gas", Slot.builder().withName("gas").withResolutions(buildResolutions(gas, gasId)).withValue(gas)
+				.build());
+		slots.put("radius", Slot.builder().withName("radius").withValue(radius).build());
 		return hasPerms ? buildIntentInputWithPermissions("GasRadius", slots) : buildIntentInput("GasRadius", slots);
 	}
 
 	public static HandlerInput buildNearbyInput(GasType gasType, boolean hasPerms) {
-		Map<String, Slot> slots = new HashMap<>();
-		if (gasType != null) {
-			Resolutions resolutions = buildResolutions(gasType.name(), Integer.toString(gasType.getId()));
-			slots.put("gas", Slot.builder().withName("gas").withResolutions(resolutions).withValue(gasType.name()).build());
-		}
+		Resolutions resolutions = buildResolutions(gasType.name(), Integer.toString(gasType.getId()));
+		Map<String, Slot> slots = Collections.singletonMap("gas",
+				Slot.builder().withName("gas").withResolutions(resolutions).withValue(gasType.name()).build());
 		return hasPerms ? buildIntentInputWithPermissions("GasNearby", slots) : buildIntentInput("GasNearby", slots);
 	}
 
@@ -145,6 +131,12 @@ public class InputBuilder {
 		RequestEnvelope envelope = RequestEnvelope.builder().withContext(context).withRequest(speechletRequest)
 				.withSession(session).build();
 		return HandlerInput.builder().withRequestEnvelope(envelope).build();
+	}
+
+	private static HandlerInput buildIntentInput(String intentName, Map<String, Slot> slots) {
+		Intent intent = Intent.builder().withName(intentName).withSlots(slots).build();
+		IntentRequest intentRequest = IntentRequest.builder().withIntent(intent).build();
+		return buildInput(intentRequest);
 	}
 
 	private InputBuilder() {

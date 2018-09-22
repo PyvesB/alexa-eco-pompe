@@ -17,8 +17,6 @@ public enum Messages {;
 	public static final String UNSUPPORTED_GAS_TYPE = "Je n'ai pas compris le carburant demandé. Réessayez en spécifiant gazole, sans plomb 95, sans plomb 98, E10, E85 ou GPL. Par exemple, dîtes simplement : \"le gazole à Bordeaux\".";
 	public static final String UNSUPPORTED_LOCATION = "Je n'ai pas trouvé d'informations pour cette localisation géographique. Réessayez en énonçant clairement le nom de ville ou de département, ou bien spécifiez un lieu différent.";
 	public static final String INCORRECT_RADIUS = "Veuillez fournir une distance comprise entre 1 et 50 kilomètres. Par exemple : \"le sans plomb 95 à moins de 10 kilomètres\".";
-	public static final String LOCATION_BAD_REQUEST = "Veuillez réessayer en fournissant un carburant suivi d'une ville ou d'un département. Par exemple : \"le sans plomb 98 à Paris\" ou \"le gazole dans la Creuse\".";
-	public static final String RADIUS_BAD_REQUEST = "Veuillez réessayer en fournissant un carburant suivi d'une distance. Par exemple : \"le sans plomb 95 à moins de 10 kilomètres\".";
 	public static final String MISSING_PERMS = "J'ai besoin de votre adresse pour trouver les pompes à proximité. Veuillez autoriser l'accès dans l'application Alexa, ou bien précisez un nom de ville ou de département.";
 	public static final String ADDRESS_ERROR = "Alexa a retourné une erreur. Réessayez plus tard, ou bien précisez un nom de ville ou de département.";
 	public static final String POSITION_UNKNOWN = "Je n'ai pas réussi à déterminer votre position géographique avec l'adresse renseignée dans votre Amazon Echo. Réessayez plus tard, ou bien précisez un nom de ville ou de département.";
