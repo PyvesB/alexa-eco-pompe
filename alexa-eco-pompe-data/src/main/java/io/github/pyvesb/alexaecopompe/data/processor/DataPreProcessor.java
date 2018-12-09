@@ -17,11 +17,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.type.TypeFactory;
@@ -35,6 +30,10 @@ import io.protostuff.LinkedBuffer;
 import io.protostuff.ProtostuffIOUtil;
 import io.protostuff.Schema;
 import io.protostuff.runtime.RuntimeSchema;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 public class DataPreProcessor implements RequestHandler<Void, Void> {
 
@@ -53,15 +52,15 @@ public class DataPreProcessor implements RequestHandler<Void, Void> {
 				.configure(FAIL_ON_UNKNOWN_PROPERTIES, false).readerFor(gasStationList);
 	}
 
-	private final AmazonS3 amazonS3;
+	private final S3Client s3Client;
 	private final String dataLocation;
 
 	public DataPreProcessor() {
-		this(AmazonS3ClientBuilder.defaultClient(), System.getenv("DATA_URL"));
+		this(S3Client.create(), System.getenv("DATA_URL"));
 	}
 
-	DataPreProcessor(AmazonS3 amazonS3, String dataLocation) {
-		this.amazonS3 = amazonS3;
+	DataPreProcessor(S3Client s3Client, String dataLocation) {
+		this.s3Client = s3Client;
 		this.dataLocation = dataLocation;
 	}
 
@@ -119,11 +118,13 @@ public class DataPreProcessor implements RequestHandler<Void, Void> {
 	private void uploadToS3(ByteArrayOutputStream byteArrayOutputStream) {
 		LOGGER.info("Uploading {} bytes of serialised data to S3", byteArrayOutputStream.size());
 		InputStream inputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-		ObjectMetadata objectMetadata = new ObjectMetadata();
-		objectMetadata.setContentLength(byteArrayOutputStream.size());
-		PutObjectRequest putObjectRequest = new PutObjectRequest(BUCKET_NAME, KEY, inputStream, objectMetadata);
-		putObjectRequest.setCannedAcl(CannedAccessControlList.PublicRead);
-		amazonS3.putObject(putObjectRequest);
+		PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+				.acl(ObjectCannedACL.PUBLIC_READ)
+				.bucket(BUCKET_NAME)
+				.key(KEY)
+				.build();
+		RequestBody requestBody = RequestBody.fromInputStream(inputStream, byteArrayOutputStream.size());
+		s3Client.putObject(putObjectRequest, requestBody);
 	}
 
 }
