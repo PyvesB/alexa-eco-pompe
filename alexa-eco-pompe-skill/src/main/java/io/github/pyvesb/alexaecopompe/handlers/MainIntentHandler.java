@@ -1,6 +1,5 @@
 package io.github.pyvesb.alexaecopompe.handlers;
 
-import static com.amazon.ask.request.Predicates.requestType;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.ADDRESS_ERROR;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.INCORRECT_RADIUS;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.MISSING_PERMS;
@@ -30,7 +29,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
-import com.amazon.ask.dispatcher.request.handler.RequestHandler;
+import com.amazon.ask.dispatcher.request.handler.impl.IntentRequestHandler;
 import com.amazon.ask.model.Intent;
 import com.amazon.ask.model.IntentRequest;
 import com.amazon.ask.model.RequestEnvelope;
@@ -59,7 +58,7 @@ import io.github.pyvesb.alexaecopompe.speech.Normalisers;
 import io.github.pyvesb.alexaecopompe.utils.GasStationPriceSorter;
 import io.github.pyvesb.alexaecopompe.utils.PostCodesExtractor;
 
-public class MainIntentHandler implements RequestHandler {
+public class MainIntentHandler implements IntentRequestHandler {
 
 	private static final Logger LOGGER = LogManager.getLogger(MainIntentHandler.class);
 	private static final List<String> ADDRESS_PERMS = singletonList("read::alexa:device:all:address");
@@ -96,14 +95,14 @@ public class MainIntentHandler implements RequestHandler {
 	}
 
 	@Override
-	public boolean canHandle(HandlerInput input) {
-		return input.matches(requestType(IntentRequest.class));
+	public boolean canHandle(HandlerInput input, IntentRequest intentRequest) {
+		return true;
 	}
 
 	@Override
-	public Optional<Response> handle(HandlerInput input) {
+	public Optional<Response> handle(HandlerInput input, IntentRequest intentRequest) {
 		RequestEnvelope envelope = input.getRequestEnvelope();
-		Intent intent = ((IntentRequest) envelope.getRequest()).getIntent();
+		Intent intent = intentRequest.getIntent();
 		String intentName = intent.getName();
 		Session session = envelope.getSession();
 		LOGGER.info("Received intent (session={}, name={})", session.getSessionId(), intentName);

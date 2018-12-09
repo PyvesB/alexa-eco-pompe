@@ -1,6 +1,5 @@
 package io.github.pyvesb.alexaecopompe.handlers;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static utils.InputBuilder.buildEndedInput;
@@ -9,21 +8,15 @@ import org.junit.jupiter.api.Test;
 
 import com.amazon.ask.model.Response;
 
-import utils.InputBuilder;
 import utils.MissingResponse;
 
-class SessionEndedRequestHandlerTest {
+class CustomSessionEndedRequestHandlerTest {
 
-	private final SessionEndedRequestHandler underTest = new SessionEndedRequestHandler();
+	private final CustomSessionEndedRequestHandler underTest = new CustomSessionEndedRequestHandler();
 
 	@Test
 	void shouldHandleSessionEndedRequests() {
 		assertTrue(underTest.canHandle(buildEndedInput()));
-	}
-
-	@Test
-	void shouldNotHandleOtherRequests() {
-		assertFalse(underTest.canHandle(InputBuilder.buildIntentInput("GasTown")));
 	}
 
 	@Test

@@ -10,21 +10,15 @@ import org.junit.jupiter.api.Test;
 
 import com.amazon.ask.model.Response;
 
-import utils.InputBuilder;
 import utils.MissingResponse;
 
-class LaunchRequestHandlerTest {
+class CustomLaunchRequestHandlerTest {
 
-	private final LaunchRequestHandler underTest = new LaunchRequestHandler();
+	private final CustomLaunchRequestHandler underTest = new CustomLaunchRequestHandler();
 
 	@Test
 	void shouldHandleLaunchRequests() {
 		assertTrue(underTest.canHandle(buildLaunchInput()));
-	}
-
-	@Test
-	void shouldNotHandleOtherRequests() {
-		assertFalse(underTest.canHandle(InputBuilder.buildIntentInput("GasTown")));
 	}
 
 	@Test

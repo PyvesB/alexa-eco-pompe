@@ -20,7 +20,6 @@ import static utils.InputBuilder.DEVICE_ID;
 import static utils.InputBuilder.buildDepartmentInput;
 import static utils.InputBuilder.buildIntentInput;
 import static utils.InputBuilder.buildIntentInputWithNoGasValue;
-import static utils.InputBuilder.buildLaunchInput;
 import static utils.InputBuilder.buildNearbyInput;
 import static utils.InputBuilder.buildRadiusInput;
 import static utils.InputBuilder.buildTownInput;
@@ -90,15 +89,9 @@ class MainIntentHandlerTest {
 				gasStationPriceSorter);
 	}
 
-	@ParameterizedTest
-	@ValueSource(strings = { "GasRadius", "SomeIntentName" })
-	void shouldHandleIntentRequestsWithGasIntentNameOrOtherIntentName(String intentName) {
-		assertTrue(underTest.canHandle(buildIntentInput(intentName)));
-	}
-
 	@Test
-	void shouldNotHandleOtherRequests() {
-		assertFalse(underTest.canHandle(buildLaunchInput()));
+	void shouldHandleIntentRequests() {
+		assertTrue(underTest.canHandle(buildIntentInput("GasRadius")));
 	}
 
 	@Test

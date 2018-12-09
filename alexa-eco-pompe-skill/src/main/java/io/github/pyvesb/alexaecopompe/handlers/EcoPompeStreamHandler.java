@@ -1,5 +1,7 @@
 package io.github.pyvesb.alexaecopompe.handlers;
 
+import java.util.Arrays;
+
 import com.amazon.ask.Skill;
 import com.amazon.ask.SkillStreamHandler;
 import com.amazon.ask.builder.CustomSkillBuilder;
@@ -22,11 +24,12 @@ public class EcoPompeStreamHandler extends SkillStreamHandler {
 
 	private static Skill getSkill() {
 		return new CustomSkillBuilder()
-				.addRequestHandlers(new CancelStopIntentHandler(),
-						new HelpIntentHandler(),
-						new MainIntentHandler(), // Must be specified as the last intent handler.
-						new SessionEndedRequestHandler(),
-						new LaunchRequestHandler())
+				.addRequestHandlers(Arrays
+						.asList(new CancelStopIntentHandler(),
+								new HelpIntentHandler(),
+								new MainIntentHandler(), // Must be specified as the last intent handler in the list.
+								new CustomSessionEndedRequestHandler(),
+								new CustomLaunchRequestHandler()))
 				.withSkillId(SKILL_ID)
 				.build();
 	}

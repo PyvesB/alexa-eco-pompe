@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static utils.InputBuilder.buildIntentInput;
-import static utils.InputBuilder.buildLaunchInput;
 import static utils.ResponseAssertions.assertSpeech;
 
 import org.junit.jupiter.api.Test;
@@ -28,11 +27,6 @@ class CancelStopIntentHandlerTest {
 	@Test
 	void shouldNotHandleIntentRequestsWithDifferentName() {
 		assertFalse(underTest.canHandle(buildIntentInput("AMAZON.HelpIntent")));
-	}
-
-	@Test
-	void shouldNotHandleOtherRequests() {
-		assertFalse(underTest.canHandle(buildLaunchInput()));
 	}
 
 	@Test

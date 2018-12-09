@@ -3,7 +3,6 @@ package io.github.pyvesb.alexaecopompe.handlers;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static utils.InputBuilder.buildIntentInput;
-import static utils.InputBuilder.buildLaunchInput;
 import static utils.ResponseAssertions.assertCard;
 import static utils.ResponseAssertions.assertSpeech;
 
@@ -25,11 +24,6 @@ class HelpIntentHandlerTest {
 	@Test
 	void shouldNotHandleIntentRequestsWithDifferentName() {
 		assertFalse(underTest.canHandle(buildIntentInput("GasTown")));
-	}
-
-	@Test
-	void shouldNotHandleOtherRequests() {
-		assertFalse(underTest.canHandle(buildLaunchInput()));
 	}
 
 	@Test
