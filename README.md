@@ -5,6 +5,7 @@
 <a href="https://github.com/PyvesB/alexa-eco-pompe/issues">
 <img src ="https://img.shields.io/github/issues/PyvesB/alexa-eco-pompe.svg?label=tickets%20ouverts" />
 </a>
+<img src ="https://img.shields.io/travis/com/PyvesB/alexa-eco-pompe.svg?label=%C3%A9tat%20des%20tests" />
 <a href="https://github.com/PyvesB/alexa-eco-pompe/blob/master/LICENSE.md">
 <img src ="https://img.shields.io/github/license/PyvesB/alexa-eco-pompe.svg?label=licence" />
 </a>
