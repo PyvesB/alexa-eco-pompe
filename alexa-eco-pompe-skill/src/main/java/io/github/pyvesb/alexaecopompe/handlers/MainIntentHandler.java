@@ -44,7 +44,6 @@ import com.amazon.ask.model.slu.entityresolution.ValueWrapper;
 import com.amazon.ask.response.ResponseBuilder;
 
 import io.github.pyvesb.alexaecopompe.address.Address;
-import io.github.pyvesb.alexaecopompe.address.AddressForbiddenException;
 import io.github.pyvesb.alexaecopompe.address.AddressInaccessibleException;
 import io.github.pyvesb.alexaecopompe.address.DeviceAddressProvider;
 import io.github.pyvesb.alexaecopompe.data.DataProvider;
@@ -179,8 +178,6 @@ public class MainIntentHandler implements IntentRequestHandler {
 			}
 			LOGGER.warn("Unknown position (address={})", address);
 			return respBuilder.withSpeech(POSITION_UNKNOWN).withShouldEndSession(true).build();
-		} catch (AddressForbiddenException e) {
-			return handleMissingPermissions(respBuilder);
 		} catch (AddressInaccessibleException e) {
 			LOGGER.error("Amazon address error (endpoint={})", systemState.getApiEndpoint(), e);
 			return respBuilder.withSpeech(ADDRESS_ERROR).withShouldEndSession(true).build();

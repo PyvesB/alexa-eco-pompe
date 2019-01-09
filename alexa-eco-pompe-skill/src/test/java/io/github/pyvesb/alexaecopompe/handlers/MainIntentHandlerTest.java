@@ -50,7 +50,6 @@ import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.model.Response;
 
 import io.github.pyvesb.alexaecopompe.address.Address;
-import io.github.pyvesb.alexaecopompe.address.AddressForbiddenException;
 import io.github.pyvesb.alexaecopompe.address.AddressInaccessibleException;
 import io.github.pyvesb.alexaecopompe.address.DeviceAddressProvider;
 import io.github.pyvesb.alexaecopompe.data.DataProvider;
@@ -326,19 +325,6 @@ class MainIntentHandlerTest {
 	@Tags({ @Tag("no-perms"), @Tag("radius") })
 	void shouldRequestPermissionsIfNotPresent() {
 		Response resp = underTest.handle(buildRadiusInput(SP95, "10", false)).orElseThrow(MissingResponse::new);
-
-		assertTrue(resp.getShouldEndSession());
-		assertCardWithPermissions(resp);
-		assertSpeech("J'ai besoin de votre adresse pour trouver les pompes à proximité. Veuillez autoriser l'accès "
-				+ "dans l'application Alexa, ou bien précisez un nom de ville ou de département.", resp);
-	}
-
-	@Test
-	@Tags({ @Tag("address-forbidden"), @Tag("radius") })
-	void shouldRequestPermissionsIfDeviceAddressProviderThrowsAnAddressForbiddenException() throws Exception {
-		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenThrow(AddressForbiddenException.class);
-
-		Response resp = underTest.handle(buildRadiusInput(SP95, "10", true)).orElseThrow(MissingResponse::new);
 
 		assertTrue(resp.getShouldEndSession());
 		assertCardWithPermissions(resp);

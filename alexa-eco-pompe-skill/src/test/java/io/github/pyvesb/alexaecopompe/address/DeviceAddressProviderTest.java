@@ -5,7 +5,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,18 +52,6 @@ class DeviceAddressProviderTest {
 		Address actualAddress = underTest.fetchAddress("http://localhost:8089", DEVICE_ID, API_TOKEN);
 		Address expectedAddress = new Address("410 Terry Ave North", "Seattle", "98109");
 		assertEquals(expectedAddress, actualAddress);
-	}
-
-	@Test
-	void shouldThrowForbiddenExceptionIf403Returned() {
-		wireMockServer.stubFor(get(urlEqualTo(API_PATH))
-				.withHeader("Authorization", equalTo("Bearer " + API_TOKEN))
-				.withHeader("Accept", equalTo("application/json"))
-				.willReturn(aResponse()
-						.withStatus(HTTP_FORBIDDEN)));
-
-		assertThrows(AddressForbiddenException.class,
-				() -> underTest.fetchAddress("http://localhost:8089", DEVICE_ID, API_TOKEN));
 	}
 
 	@Test
