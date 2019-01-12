@@ -1,6 +1,7 @@
 package io.github.pyvesb.alexaecopompe.address;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 import java.io.IOException;
@@ -34,7 +35,8 @@ public class DeviceAddressProvider {
 		this.timeout = timeout;
 	}
 
-	public Address fetchAddress(String host, String device, String token) throws AddressInaccessibleException {
+	public Address fetchAddress(String host, String device, String token)
+			throws AddressForbiddenException, AddressInaccessibleException {
 		try {
 			LOGGER.info("Fetching address for host {} and device {}", host, device);
 			URLConnection connection = new URL(host + String.format(PATH, device)).openConnection();
@@ -45,6 +47,8 @@ public class DeviceAddressProvider {
 			int responseCode = ((HttpURLConnection) connection).getResponseCode();
 			if (responseCode == HTTP_OK) {
 				return unmarshallAddress(connection);
+			} else if (responseCode == HTTP_FORBIDDEN) {
+				throw new AddressForbiddenException();
 			} else {
 				throw new AddressInaccessibleException("Unexpected response code " + responseCode);
 			}
