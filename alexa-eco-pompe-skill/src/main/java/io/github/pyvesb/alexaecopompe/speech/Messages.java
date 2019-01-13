@@ -11,6 +11,7 @@ public enum Messages {;
 	public static final String STATION_FOUND_E10 = "Je n'ai pas trouvé de pompe vendant du sans plomb 95. Cependant, $NAME vend de l'E10 pour $PRICE. $SUBJECT est située $ADDRESS à $TOWN, et a actualisé ses tarifs $DATE.";
 	public static final String NO_STATION_TOWN = "Je n'ai pas trouvé de pompe dans $LOCATION. Éssayez une ville différente.";
 	public static final String NO_STATION_RADIUS = "Je n'ai pas trouvé de pompe à moins de $RADIUS kilomètres. Réessayez en spécifiant une distance plus grande. Par exemple, dîtes simplement : \"le $TYPE à moins de $BIGGER_RADIUS kilomètres\".";
+	public static final String NO_STATION_RADIUS_MAX = "Je n'ai pas trouvé de pompe à moins de $RADIUS kilomètres. Veuillez préciser un nom de ville ou de département.";
 	public static final String NO_STATION_FOR_TYPE_TOWN = "Je n'ai pas trouvé de pompe vendant $TYPE dans $LOCATION. Éssayez un autre carburant ou une ville différente.";
 	public static final String NO_STATION_FOR_TYPE_RADIUS = "Je n'ai pas trouvé de pompe vendant $TYPE à moins de $RADIUS kilomètres. Réessayez en spécifiant un autre carburant ou une distance plus grande.";
 	public static final String UNSUPPORTED_GAS_TYPE = "Je n'ai pas compris le carburant demandé. Réessayez en spécifiant gazole, sans plomb 95, sans plomb 98, E10, E85 ou GPL. Par exemple, dîtes simplement : \"le gazole à Bordeaux\".";

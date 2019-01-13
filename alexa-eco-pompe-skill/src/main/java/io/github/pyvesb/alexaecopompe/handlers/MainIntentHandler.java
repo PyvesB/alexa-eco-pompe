@@ -9,6 +9,7 @@ import static io.github.pyvesb.alexaecopompe.speech.Messages.NAME;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_FOR_TYPE_RADIUS;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_FOR_TYPE_TOWN;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_RADIUS;
+import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_RADIUS_MAX;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_TOWN;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.POSITION_UNKNOWN;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.STATION_FOUND;
@@ -254,38 +255,43 @@ public class MainIntentHandler implements IntentRequestHandler {
 
 	private Optional<Response> handleGasStationList(ResponseBuilder respBuilder, GasType gasType,
 			List<GasStation> gasStations, Optional<String> town, Optional<Integer> radius) {
-		if (!gasStations.isEmpty()) {
-			gasStationPriceSorter.sortGasStationsByIncreasingPricesForGasType(gasStations, gasType);
-			GasStation cheapestGasStation = gasStations.get(0);
-			Optional<Price> price = cheapestGasStation.getPriceForGasType(gasType);
-			if (price.isPresent()) {
-				LOGGER.info("Station found (gas={}, id={})", gasType, cheapestGasStation.getId());
-				return buildGasStationResponse(respBuilder, cheapestGasStation, price.get(), town, STATION_FOUND);
-			} else if (gasType == GasType.SP95) {
-				// SP95 and E10 are interchangeable on most vehicles, see if E10 is available if no SP95 was found.
-				gasStationPriceSorter.sortGasStationsByIncreasingPricesForGasType(gasStations, GasType.E10);
-				cheapestGasStation = gasStations.get(0);
-				price = cheapestGasStation.getPriceForGasType(GasType.E10);
-				if (price.isPresent()) {
-					LOGGER.info("Other E10 station (gas=E10, id={})", cheapestGasStation.getId());
-					return buildGasStationResponse(respBuilder, cheapestGasStation, price.get(), town, STATION_FOUND_E10);
-				}
+		if (gasStations.isEmpty()) {
+			LOGGER.info("No station found (location={})", town.orElseGet(() -> radius.get() + "km"));
+			String text;
+			if (!radius.isPresent()) {
+				text = StringUtils.replaceOnce(NO_STATION_TOWN, "$LOCATION", town.orElse("ce département"));
+			} else if (radius.get() == RADIUS_UPPER_BOUND) {
+				text = StringUtils.replaceOnce(NO_STATION_RADIUS_MAX, "$RADIUS", radius.get().toString());
+			} else {
+				String biggerRadius = Integer.toString(radius.get() + 5);
+				text = StringUtils.replaceEach(NO_STATION_RADIUS, new String[] { "$RADIUS", "$TYPE", "$BIGGER_RADIUS" },
+						new String[] { radius.get().toString(), gasType.getDisplayName(), biggerRadius });
 			}
-			String text = radius.isPresent()
-					? StringUtils.replaceEach(NO_STATION_FOR_TYPE_RADIUS, new String[] { "$TYPE", "$RADIUS" },
-							new String[] { gasType.getSpeechText(), radius.get().toString() })
-					: StringUtils.replaceEach(NO_STATION_FOR_TYPE_TOWN, new String[] { "$TYPE", "$LOCATION" },
-							new String[] { gasType.getSpeechText(), town.orElse("ce département") });
-			LOGGER.info("No station found for type (gas={}, location={})", gasType,
-					town.orElseGet(() -> radius.get() + "km"));
 			return respBuilder.withSpeech(text).withShouldEndSession(true).build();
 		}
+
+		gasStationPriceSorter.sortGasStationsByIncreasingPricesForGasType(gasStations, gasType);
+		GasStation cheapestGasStation = gasStations.get(0);
+		Optional<Price> price = cheapestGasStation.getPriceForGasType(gasType);
+		if (price.isPresent()) {
+			LOGGER.info("Station found (gas={}, id={})", gasType, cheapestGasStation.getId());
+			return buildGasStationResponse(respBuilder, cheapestGasStation, price.get(), town, STATION_FOUND);
+		} else if (gasType == GasType.SP95) {
+			// SP95 and E10 are interchangeable on most vehicles, see if E10 is available if no SP95 was found.
+			gasStationPriceSorter.sortGasStationsByIncreasingPricesForGasType(gasStations, GasType.E10);
+			cheapestGasStation = gasStations.get(0);
+			price = cheapestGasStation.getPriceForGasType(GasType.E10);
+			if (price.isPresent()) {
+				LOGGER.info("Other E10 station (gas=E10, id={})", cheapestGasStation.getId());
+				return buildGasStationResponse(respBuilder, cheapestGasStation, price.get(), town, STATION_FOUND_E10);
+			}
+		}
+		LOGGER.info("No station found for type (gas={}, location={})", gasType, town.orElseGet(() -> radius.get() + "km"));
 		String text = radius.isPresent()
-				? StringUtils.replaceEach(NO_STATION_RADIUS, new String[] { "$RADIUS", "$TYPE", "$BIGGER_RADIUS" },
-						new String[] { radius.get().toString(), gasType.getDisplayName(),
-								Integer.toString(Math.min(RADIUS_UPPER_BOUND, radius.get() + 5)) })
-				: StringUtils.replaceOnce(NO_STATION_TOWN, "$LOCATION", town.orElse("ce département"));
-		LOGGER.info("No station found (location={})", town.orElseGet(() -> radius.get() + "km"));
+				? StringUtils.replaceEach(NO_STATION_FOR_TYPE_RADIUS, new String[] { "$TYPE", "$RADIUS" },
+						new String[] { gasType.getSpeechText(), radius.get().toString() })
+				: StringUtils.replaceEach(NO_STATION_FOR_TYPE_TOWN, new String[] { "$TYPE", "$LOCATION" },
+						new String[] { gasType.getSpeechText(), town.orElse("ce département") });
 		return respBuilder.withSpeech(text).withShouldEndSession(true).build();
 	}
 

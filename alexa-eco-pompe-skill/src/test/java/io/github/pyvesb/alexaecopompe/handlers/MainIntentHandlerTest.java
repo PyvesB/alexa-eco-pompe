@@ -311,6 +311,23 @@ class MainIntentHandlerTest {
 				+ "plus grande. Par exemple, dîtes simplement : \"le Sans Plomb 95 à moins de 15 kilomètres\".", resp);
 	}
 
+	@Test
+	@Tags({ @Tag("not-found"), @Tag("radius") })
+	void shouldReturnNoGasStationFoundIfNoGasStationsInRequestedMaximumRadius() throws Exception {
+		Address address = new Address("54Bis rue Cler", "Paris", "75002");
+		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenReturn(address);
+		Position position = new Position(43.6f, 4.08f);
+		when(positionProvider.getByAddress(any())).thenReturn(Optional.of(position));
+		when(dataProvider.getGasStationsWithinRadius(any(), anyInt())).thenReturn(emptyList());
+
+		Response resp = underTest.handle(buildRadiusInput(SP95, "50")).orElseThrow(MissingResponse::new);
+
+		assertTrue(resp.getShouldEndSession());
+		assertNull(resp.getCard());
+		assertSpeech("Je n'ai pas trouvé de pompe à moins de 50 kilomètres. Veuillez préciser un nom de ville ou "
+				+ "de département.", resp);
+	}
+
 	@TestFactory
 	@Tags({ @Tag("unsupported-gas"), @Tag("town"), @Tag("radius") })
 	Stream<DynamicTest> shouldReturnUnsupportedGasTypeIfGasTypeCouldNotBeMatched() {
