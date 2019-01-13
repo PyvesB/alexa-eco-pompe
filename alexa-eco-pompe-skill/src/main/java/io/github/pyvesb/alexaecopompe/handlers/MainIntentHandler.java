@@ -47,8 +47,7 @@ import com.amazon.ask.model.interfaces.geolocation.Coordinate;
 import com.amazon.ask.model.interfaces.geolocation.GeolocationState;
 import com.amazon.ask.model.interfaces.system.SystemState;
 import com.amazon.ask.model.slu.entityresolution.Resolutions;
-import com.amazon.ask.model.slu.entityresolution.Value;
-import com.amazon.ask.model.slu.entityresolution.ValueWrapper;
+import com.amazon.ask.model.slu.entityresolution.StatusCode;
 import com.amazon.ask.response.ResponseBuilder;
 
 import io.github.pyvesb.alexaecopompe.address.Address;
@@ -69,13 +68,13 @@ import io.github.pyvesb.alexaecopompe.utils.PostCodesExtractor;
 public class MainIntentHandler implements IntentRequestHandler {
 
 	private static final Logger LOGGER = LogManager.getLogger(MainIntentHandler.class);
-	
+
 	private static final String ADDRESS_PERM = "read::alexa:device:all:address";
 	private static final String GEO_PERM = "alexa::devices:all:geolocation:read";
-	
+
 	private static final Slot DEFAULT_RADIUS = Slot.builder().withName("radius").withValue("5").build();
 	private static final int RADIUS_UPPER_BOUND = 50;
-	
+
 	private static final double COORDINATE_ACCURACY_METERS = 1000;
 	private static final int GEOLOCATION_STALENESS_SECONDS = 300;
 
@@ -178,7 +177,7 @@ public class MainIntentHandler implements IntentRequestHandler {
 			LOGGER.info("Incorrect radius (radius={})", radiusSlot.getValue());
 			return respBuilder.withSpeech(INCORRECT_RADIUS).withReprompt(INCORRECT_RADIUS).build();
 		}
-		
+
 		SystemState system = context.getSystem();
 		Device device = system.getDevice();
 		Optional<Position> position;
@@ -201,7 +200,7 @@ public class MainIntentHandler implements IntentRequestHandler {
 				return respBuilder.withSpeech(ADDRESS_ERROR).withShouldEndSession(true).build();
 			}
 		}
-		
+
 		if (position.isPresent()) {
 			List<GasStation> gasStations = dataProvider.getGasStationsWithinRadius(position.get(), radius);
 			GasType gasType = GasType.fromId(gasId.get());
@@ -244,14 +243,11 @@ public class MainIntentHandler implements IntentRequestHandler {
 		// The slot id is treated at the same level as the slot value in the Alexa console but unfortunately there
 		// doesn't seem to be any cleaner way than chaining all these method calls and checks to retrieve it.
 		Resolutions resolutions = slot.getResolutions();
-		if (resolutions != null && !resolutions.getResolutionsPerAuthority().isEmpty()) {
-			List<ValueWrapper> values = resolutions.getResolutionsPerAuthority().get(0).getValues();
-			if (values != null && !values.isEmpty()) {
-				Value value = values.get(0).getValue();
-				if (value != null) {
-					return Optional.ofNullable(value.getId());
-				}
-			}
+		if (resolutions != null) {
+			return resolutions.getResolutionsPerAuthority().stream()
+					.filter(r -> r.getStatus().getCode() == StatusCode.ER_SUCCESS_MATCH)
+					.map(r -> r.getValues().get(0).getValue().getId())
+					.findAny();
 		}
 		return Optional.empty();
 	}

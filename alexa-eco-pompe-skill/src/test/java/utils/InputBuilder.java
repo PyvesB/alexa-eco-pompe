@@ -27,6 +27,8 @@ import com.amazon.ask.model.interfaces.geolocation.GeolocationState;
 import com.amazon.ask.model.interfaces.system.SystemState;
 import com.amazon.ask.model.slu.entityresolution.Resolution;
 import com.amazon.ask.model.slu.entityresolution.Resolutions;
+import com.amazon.ask.model.slu.entityresolution.Status;
+import com.amazon.ask.model.slu.entityresolution.StatusCode;
 import com.amazon.ask.model.slu.entityresolution.Value;
 import com.amazon.ask.model.slu.entityresolution.ValueWrapper;
 
@@ -118,12 +120,12 @@ public class InputBuilder {
 
 	private static Resolutions buildResolutions(String name, String id) {
 		Resolutions resolutions = null;
-		if (id != null) {
-			Value value = Value.builder().withName(name).withId(id).build();
-			ValueWrapper valueWrapper = ValueWrapper.builder().withValue(value).build();
-			Resolution resolution = Resolution.builder().withValues(singletonList(valueWrapper)).build();
-			resolutions = Resolutions.builder().withResolutionsPerAuthority(singletonList(resolution)).build();
-		}
+		Value value = Value.builder().withName(name).withId(id).build();
+		ValueWrapper valueWrapper = ValueWrapper.builder().withValue(value).build();
+		StatusCode statusCode = id == null ? StatusCode.ER_SUCCESS_NO_MATCH : StatusCode.ER_SUCCESS_MATCH;
+		Status status = Status.builder().withCode(statusCode).build();
+		Resolution resolution = Resolution.builder().withValues(singletonList(valueWrapper)).withStatus(status).build();
+		resolutions = Resolutions.builder().withResolutionsPerAuthority(singletonList(resolution)).build();
 		return resolutions;
 	}
 
