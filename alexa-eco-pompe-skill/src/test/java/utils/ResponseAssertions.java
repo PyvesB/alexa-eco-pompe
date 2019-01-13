@@ -24,10 +24,10 @@ public class ResponseAssertions {
 		assertEquals(content, card.getContent());
 	}
 
-	public static void assertCardWithPermissions(Response response) {
+	public static void assertCardWithPermissions(String permission, Response response) {
 		AskForPermissionsConsentCard card = (AskForPermissionsConsentCard) response.getCard();
 		assertNotNull(card, "No card was found in the reponse");
-		assertEquals(singletonList("read::alexa:device:all:address"), card.getPermissions());
+		assertEquals(singletonList(permission), card.getPermissions());
 	}
 	
 	private ResponseAssertions() {

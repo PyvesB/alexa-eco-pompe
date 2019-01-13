@@ -1,8 +1,8 @@
 package utils;
 
 import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,13 +12,18 @@ import com.amazon.ask.model.Device;
 import com.amazon.ask.model.Intent;
 import com.amazon.ask.model.IntentRequest;
 import com.amazon.ask.model.LaunchRequest;
+import com.amazon.ask.model.PermissionStatus;
 import com.amazon.ask.model.Permissions;
 import com.amazon.ask.model.Request;
 import com.amazon.ask.model.RequestEnvelope;
+import com.amazon.ask.model.Scope;
 import com.amazon.ask.model.Session;
 import com.amazon.ask.model.SessionEndedRequest;
 import com.amazon.ask.model.Slot;
+import com.amazon.ask.model.SupportedInterfaces;
 import com.amazon.ask.model.User;
+import com.amazon.ask.model.interfaces.geolocation.GeolocationInterface;
+import com.amazon.ask.model.interfaces.geolocation.GeolocationState;
 import com.amazon.ask.model.interfaces.system.SystemState;
 import com.amazon.ask.model.slu.entityresolution.Resolution;
 import com.amazon.ask.model.slu.entityresolution.Resolutions;
@@ -36,8 +41,7 @@ public class InputBuilder {
 	private static final String SESSION_ID = "amzn1.echo-api.session.f7c13f4e-7b37-422d-89ba-45bfb1b00eed";
 
 	public static HandlerInput buildLaunchInput() {
-		LaunchRequest launchRequest = LaunchRequest.builder().build();
-		return buildInput(launchRequest);
+		return buildInput(LaunchRequest.builder().build());
 	}
 
 	public static HandlerInput buildEndedInput() {
@@ -51,66 +55,65 @@ public class InputBuilder {
 	}
 
 	public static HandlerInput buildIntentInputWithNoGasValue(String intentName) {
-		Slot gasSlot = Slot.builder().withName("gas").withValue(null).build();
-		Intent intent = Intent.builder().withName(intentName).withSlots(Collections.singletonMap("gas", gasSlot)).build();
+		Slot gasSlot = Slot.builder().withName("gas").build();
+		Intent intent = Intent.builder().withName(intentName).withSlots(singletonMap("gas", gasSlot)).build();
 		IntentRequest intentRequest = IntentRequest.builder().withIntent(intent).build();
 		return buildInput(intentRequest);
 	}
 
 	public static HandlerInput buildDepartmentInput(GasType gasType, String department, String deparmentId) {
-		Map<String, Slot> slots = new HashMap<>();
-		Resolutions resolutions = buildResolutions(gasType.name(), Integer.toString(gasType.getId()));
-		slots.put("gas", Slot.builder().withName("gas").withResolutions(resolutions).withValue(gasType.name()).build());
-		slots.put("department", Slot.builder().withName("department")
-				.withResolutions(buildResolutions("department", deparmentId)).withValue(department).build());
+		Map<String, Slot> slots = buildSlots(gasType.name(), gasType.getIdString(), "department", department, deparmentId);
 		return buildIntentInput("GasDepartment", slots);
 	}
 
 	public static HandlerInput buildTownInput(GasType gasType, String town, String townId) {
-		return buildTownInput(gasType.name(), Integer.toString(gasType.getId()), town, townId);
+		return buildTownInput(gasType.name(), gasType.getIdString(), town, townId);
 	}
 
 	public static HandlerInput buildTownInput(String gas, String gasId, String town, String townId) {
-		Map<String, Slot> slots = new HashMap<>();
-		slots.put("gas", Slot.builder().withName("gas").withResolutions(buildResolutions("gas", gasId)).withValue(gas)
-				.build());
-		slots.put("town", Slot.builder().withName("town").withResolutions(buildResolutions("town", townId))
-				.withValue(town).build());
+		Map<String, Slot> slots = buildSlots(gas, gasId, "town", town, townId);
 		return buildIntentInput("GasTown", slots);
 	}
 
-	public static HandlerInput buildRadiusInput(GasType gasType, String radius, boolean hasPerms) {
-		return buildRadiusInput(gasType.name(), Integer.toString(gasType.getId()), radius, hasPerms);
+	public static HandlerInput buildRadiusInput(GasType gasType, String radius) {
+		return buildRadiusInput(gasType.name(), gasType.getIdString(), radius);
 	}
 
-	public static HandlerInput buildRadiusInput(String gas, String gasId, String radius, boolean hasPerms) {
-		Map<String, Slot> slots = new HashMap<>();
-		slots.put("gas", Slot.builder().withName("gas").withResolutions(buildResolutions(gas, gasId)).withValue(gas)
-				.build());
-		slots.put("radius", Slot.builder().withName("radius").withValue(radius).build());
-		return hasPerms ? buildIntentInputWithPermissions("GasRadius", slots) : buildIntentInput("GasRadius", slots);
+	public static HandlerInput buildRadiusInput(String gas, String gasId, String radius) {
+		Map<String, Slot> slots = buildSlots(gas, gasId, "radius", radius, null);
+		return buildIntentInput("GasRadius", slots);
 	}
 
-	public static HandlerInput buildNearbyInput(GasType gasType, boolean hasPerms) {
-		Resolutions resolutions = buildResolutions(gasType.name(), Integer.toString(gasType.getId()));
-		Map<String, Slot> slots = Collections.singletonMap("gas",
-				Slot.builder().withName("gas").withResolutions(resolutions).withValue(gasType.name()).build());
-		return hasPerms ? buildIntentInputWithPermissions("GasNearby", slots) : buildIntentInput("GasNearby", slots);
-	}
-
-	private static HandlerInput buildIntentInputWithPermissions(String intentName, Map<String, Slot> slots) {
-		Intent intent = Intent.builder().withName(intentName).withSlots(slots).build();
+	public static HandlerInput buildRadiusGeoInput(GasType gasType, String radius, GeolocationState geolocation,
+			PermissionStatus permissionStatus) {
+		Map<String, Slot> slots = buildSlots(gasType.name(), gasType.getIdString(), "radius", radius, null);
+		Intent intent = Intent.builder().withName("GasRadius").withSlots(slots).build();
 		IntentRequest intentRequest = IntentRequest.builder().withIntent(intent).build();
-		Permissions permissions = Permissions.builder().withConsentToken("consentToken").build();
+		Scope scope = Scope.builder().withStatus(permissionStatus).build();
+		Permissions permissions = Permissions.builder()
+				.withScopes(singletonMap("alexa::devices:all:geolocation:read", scope)).build();
 		User user = User.builder().withPermissions(permissions).build();
-		Session session = Session.builder().withSessionId(SESSION_ID).withUser(user).build();
-		Device device = Device.builder().withDeviceId(DEVICE_ID).build();
-		SystemState systemState = SystemState.builder().withUser(user).withApiAccessToken(API_ACCESS_TOKEN)
-				.withApiEndpoint(API_ENDPOINT).withDevice(device).build();
-		Context context = Context.builder().withSystem(systemState).build();
-		RequestEnvelope envelope = RequestEnvelope.builder().withContext(context).withRequest(intentRequest)
-				.withSession(session).build();
-		return HandlerInput.builder().withRequestEnvelope(envelope).build();
+		GeolocationInterface geoInterface = GeolocationInterface.builder().build();
+		SupportedInterfaces supportedInterfaces = SupportedInterfaces.builder().withGeolocation(geoInterface).build();
+		return buildInput(intentRequest, supportedInterfaces, geolocation, user);
+	}
+
+	public static HandlerInput buildNearbyInput(GasType gasType) {
+		Resolutions resolutions = buildResolutions(gasType.name(), gasType.getIdString());
+		Slot gasSlot = Slot.builder().withName("gas").withResolutions(resolutions).withValue(gasType.name()).build();
+		return buildIntentInput("GasNearby", singletonMap("gas", gasSlot));
+	}
+
+	private static Map<String, Slot> buildSlots(String gas, String gasId, String otherName, String otherValue,
+			String otherId) {
+		Map<String, Slot> slots = new HashMap<>();
+		Resolutions gasResolutions = buildResolutions(gas, gasId);
+		Slot gasSlot = Slot.builder().withName("gas").withResolutions(gasResolutions).withValue(gas).build();
+		slots.put("gas", gasSlot);
+		Resolutions otherResolutions = buildResolutions(otherName, otherId);
+		Slot otherSlot = Slot.builder().withName(otherName).withValue(otherValue).withResolutions(otherResolutions).build();
+		slots.put(otherName, otherSlot);
+		return slots;
 	}
 
 	private static Resolutions buildResolutions(String name, String id) {
@@ -124,19 +127,26 @@ public class InputBuilder {
 		return resolutions;
 	}
 
-	private static HandlerInput buildInput(Request speechletRequest) {
-		User user = User.builder().build();
-		Session session = Session.builder().withSessionId(SESSION_ID).withUser(user).build();
-		Context context = Context.builder().build();
-		RequestEnvelope envelope = RequestEnvelope.builder().withContext(context).withRequest(speechletRequest)
-				.withSession(session).build();
-		return HandlerInput.builder().withRequestEnvelope(envelope).build();
-	}
-
 	private static HandlerInput buildIntentInput(String intentName, Map<String, Slot> slots) {
 		Intent intent = Intent.builder().withName(intentName).withSlots(slots).build();
 		IntentRequest intentRequest = IntentRequest.builder().withIntent(intent).build();
 		return buildInput(intentRequest);
+	}
+
+	private static HandlerInput buildInput(Request speechletRequest) {
+		return buildInput(speechletRequest, SupportedInterfaces.builder().build(), null, null);
+	}
+
+	private static HandlerInput buildInput(Request request, SupportedInterfaces supportedInterfaces,
+			GeolocationState geolocation, User user) {
+		Device device = Device.builder().withDeviceId(DEVICE_ID).withSupportedInterfaces(supportedInterfaces).build();
+		SystemState systemState = SystemState.builder().withApiAccessToken(API_ACCESS_TOKEN).withApiEndpoint(API_ENDPOINT)
+				.withDevice(device).build();
+		Context context = Context.builder().withSystem(systemState).withGeolocation(geolocation).build();
+		Session session = Session.builder().withSessionId(SESSION_ID).withUser(user).build();
+		RequestEnvelope envelope = RequestEnvelope.builder().withContext(context).withRequest(request).withSession(session)
+				.build();
+		return HandlerInput.builder().withRequestEnvelope(envelope).build();
 	}
 
 	private InputBuilder() {

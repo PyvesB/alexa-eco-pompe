@@ -2,7 +2,9 @@ package io.github.pyvesb.alexaecopompe.handlers;
 
 import static io.github.pyvesb.alexaecopompe.speech.Messages.ADDRESS_ERROR;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.INCORRECT_RADIUS;
-import static io.github.pyvesb.alexaecopompe.speech.Messages.MISSING_PERMS;
+import static io.github.pyvesb.alexaecopompe.speech.Messages.MISSING_ADDRESS_PERMS;
+import static io.github.pyvesb.alexaecopompe.speech.Messages.MISSING_ADDRESS_PERMS_NO_GEO;
+import static io.github.pyvesb.alexaecopompe.speech.Messages.MISSING_GEO_PERMS;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.NAME;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_FOR_TYPE_RADIUS;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.NO_STATION_FOR_TYPE_TOWN;
@@ -19,6 +21,7 @@ import static java.util.Collections.singletonList;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,13 +33,18 @@ import org.apache.logging.log4j.Logger;
 
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.dispatcher.request.handler.impl.IntentRequestHandler;
+import com.amazon.ask.model.Context;
+import com.amazon.ask.model.Device;
 import com.amazon.ask.model.Intent;
 import com.amazon.ask.model.IntentRequest;
+import com.amazon.ask.model.PermissionStatus;
 import com.amazon.ask.model.RequestEnvelope;
 import com.amazon.ask.model.Response;
 import com.amazon.ask.model.Session;
 import com.amazon.ask.model.Slot;
 import com.amazon.ask.model.User;
+import com.amazon.ask.model.interfaces.geolocation.Coordinate;
+import com.amazon.ask.model.interfaces.geolocation.GeolocationState;
 import com.amazon.ask.model.interfaces.system.SystemState;
 import com.amazon.ask.model.slu.entityresolution.Resolutions;
 import com.amazon.ask.model.slu.entityresolution.Value;
@@ -61,9 +69,15 @@ import io.github.pyvesb.alexaecopompe.utils.PostCodesExtractor;
 public class MainIntentHandler implements IntentRequestHandler {
 
 	private static final Logger LOGGER = LogManager.getLogger(MainIntentHandler.class);
-	private static final List<String> ADDRESS_PERMS = singletonList("read::alexa:device:all:address");
+	
+	private static final String ADDRESS_PERM = "read::alexa:device:all:address";
+	private static final String GEO_PERM = "alexa::devices:all:geolocation:read";
+	
 	private static final Slot DEFAULT_RADIUS = Slot.builder().withName("radius").withValue("5").build();
 	private static final int RADIUS_UPPER_BOUND = 50;
+	
+	private static final double COORDINATE_ACCURACY_METERS = 1000;
+	private static final int GEOLOCATION_STALENESS_SECONDS = 300;
 
 	private final DataProvider dataProvider;
 	private final NameProvider nameProvider;
@@ -116,10 +130,10 @@ public class MainIntentHandler implements IntentRequestHandler {
 		} else if ("GasDepartment".equals(intentName)) {
 			return handleLocationRequest(input.getResponseBuilder(), gasSlot, slots.get("department"));
 		} else if ("GasRadius".equals(intentName)) {
-			return handleRadiusRequest(input.getResponseBuilder(), gasSlot, slots.get("radius"),
-					envelope.getContext().getSystem(), session.getUser());
+			return handleRadiusRequest(input.getResponseBuilder(), gasSlot, slots.get("radius"), envelope.getContext(),
+					session.getUser());
 		}
-		return handleRadiusRequest(input.getResponseBuilder(), gasSlot, DEFAULT_RADIUS, envelope.getContext().getSystem(),
+		return handleRadiusRequest(input.getResponseBuilder(), gasSlot, DEFAULT_RADIUS, envelope.getContext(),
 				session.getUser());
 	}
 
@@ -153,10 +167,7 @@ public class MainIntentHandler implements IntentRequestHandler {
 	}
 
 	private Optional<Response> handleRadiusRequest(ResponseBuilder respBuilder, Slot gasSlot, Slot radiusSlot,
-			SystemState systemState, User user) {
-		if (user.getPermissions() == null) {
-			return handleMissingPermissions(respBuilder);
-		}
+			Context context, User user) {
 		Optional<String> gasId = getSlotId(gasSlot);
 		if (!gasId.isPresent()) {
 			LOGGER.warn("Unsupported gas type (gas={})", gasSlot.getValue());
@@ -167,29 +178,65 @@ public class MainIntentHandler implements IntentRequestHandler {
 			LOGGER.info("Incorrect radius (radius={})", radiusSlot.getValue());
 			return respBuilder.withSpeech(INCORRECT_RADIUS).withReprompt(INCORRECT_RADIUS).build();
 		}
-		try {
-			Address address = deviceAddressProvider.fetchAddress(systemState.getApiEndpoint(),
-					systemState.getDevice().getDeviceId(), systemState.getApiAccessToken());
-			Optional<Position> position = positionProvider.getByAddress(address);
-			if (position.isPresent()) {
-				List<GasStation> gasStations = dataProvider.getGasStationsWithinRadius(position.get(), radius);
-				GasType gasType = GasType.fromId(gasId.get());
-				LOGGER.info("Radius request (gas={}, radius={})", gasType, radius);
-				return handleGasStationList(respBuilder, gasType, gasStations, Optional.empty(), Optional.of(radius));
+		
+		SystemState system = context.getSystem();
+		Device device = system.getDevice();
+		Optional<Position> position;
+		if (isGeolocationAvailable(context)) {
+			LOGGER.info("Using device geolocation (device={})", device.getDeviceId());
+			position = positionProvider.getByGeolocation(context.getGeolocation());
+		} else if (isGeolocationCompatible(device) && isMissingGeolocationPermission(user)) {
+			return handleMissingPermissions(respBuilder, GEO_PERM, MISSING_GEO_PERMS);
+		} else {
+			LOGGER.info("Using device address (device={})", device.getDeviceId());
+			try {
+				Address address = deviceAddressProvider.fetchAddress(system.getApiEndpoint(),
+						device.getDeviceId(), system.getApiAccessToken());
+				position = positionProvider.getByAddress(address);
+			} catch (AddressForbiddenException e) {
+				String speech = isGeolocationCompatible(device) ? MISSING_ADDRESS_PERMS_NO_GEO : MISSING_ADDRESS_PERMS;
+				return handleMissingPermissions(respBuilder, ADDRESS_PERM, speech);
+			} catch (AddressInaccessibleException e) {
+				LOGGER.error("Amazon address error (endpoint={})", system.getApiEndpoint(), e);
+				return respBuilder.withSpeech(ADDRESS_ERROR).withShouldEndSession(true).build();
 			}
-			LOGGER.warn("Unknown position (address={})", address);
-			return respBuilder.withSpeech(POSITION_UNKNOWN).withShouldEndSession(true).build();
-		} catch (AddressForbiddenException e) {
-			return handleMissingPermissions(respBuilder);
-		} catch (AddressInaccessibleException e) {
-			LOGGER.error("Amazon address error (endpoint={})", systemState.getApiEndpoint(), e);
-			return respBuilder.withSpeech(ADDRESS_ERROR).withShouldEndSession(true).build();
 		}
+		
+		if (position.isPresent()) {
+			List<GasStation> gasStations = dataProvider.getGasStationsWithinRadius(position.get(), radius);
+			GasType gasType = GasType.fromId(gasId.get());
+			LOGGER.info("Radius request (gas={}, radius={})", gasType, radius);
+			return handleGasStationList(respBuilder, gasType, gasStations, Optional.empty(), Optional.of(radius));
+		}
+		return respBuilder.withSpeech(POSITION_UNKNOWN).withShouldEndSession(true).build();
 	}
 
-	private Optional<Response> handleMissingPermissions(ResponseBuilder respBuilder) {
-		LOGGER.info("Missing address permissions");
-		return respBuilder.withSpeech(MISSING_PERMS).withAskForPermissionsConsentCard(ADDRESS_PERMS)
+	private boolean isMissingGeolocationPermission(User user) {
+		return user.getPermissions().getScopes().get(GEO_PERM).getStatus() != PermissionStatus.GRANTED;
+	}
+
+	private boolean isGeolocationCompatible(Device device) {
+		return device.getSupportedInterfaces().getGeolocation() != null;
+	}
+
+	private boolean isGeolocationAvailable(Context context) {
+		GeolocationState geolocation = context.getGeolocation();
+		if (geolocation != null) {
+			Coordinate coordinate = geolocation.getCoordinate();
+			if (coordinate != null) {
+				long freshness = OffsetDateTime.now().toEpochSecond()
+						- OffsetDateTime.parse(geolocation.getTimestamp()).toEpochSecond();
+				LOGGER.info("Geolocation (accuracy={}, freshness={}s)", coordinate.getAccuracyInMeters(), freshness);
+				return coordinate.getAccuracyInMeters() < COORDINATE_ACCURACY_METERS
+						&& freshness <= GEOLOCATION_STALENESS_SECONDS;
+			}
+		}
+		return false;
+	}
+
+	private Optional<Response> handleMissingPermissions(ResponseBuilder respBuilder, String perm, String speech) {
+		LOGGER.info("Missing permissions (perms={})", perm);
+		return respBuilder.withAskForPermissionsConsentCard(singletonList(perm)).withSpeech(speech)
 				.withShouldEndSession(true).build();
 	}
 

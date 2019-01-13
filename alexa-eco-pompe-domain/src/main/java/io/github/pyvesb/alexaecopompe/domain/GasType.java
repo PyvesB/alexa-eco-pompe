@@ -34,4 +34,8 @@ public enum GasType {
 		return ordinal();
 	}
 
+	public String getIdString() {
+		return Integer.toString(ordinal());
+	}
+
 }

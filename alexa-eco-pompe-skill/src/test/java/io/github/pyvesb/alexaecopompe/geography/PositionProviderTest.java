@@ -22,6 +22,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.amazon.ask.model.interfaces.geolocation.Coordinate;
+import com.amazon.ask.model.interfaces.geolocation.GeolocationState;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
@@ -46,6 +48,17 @@ class PositionProviderTest {
 	@AfterEach
 	void tearDown() {
 		wireMockServer.stop();
+	}
+	
+	@Test
+	void shouldReturnPositionForGeolocation() {
+		Coordinate coordinate = Coordinate.builder().withLatitudeInDegrees(48.8674634)
+				.withLongitudeInDegrees(2.32942811682519).build();
+		GeolocationState geolocation = GeolocationState.builder().withCoordinate(coordinate).build();
+
+		Optional<Position> position = underTest.getByGeolocation(geolocation);
+
+		assertEquals(Optional.of(new Position(48.8674634f, 2.32942811682519f)), position);
 	}
 
 	@Test

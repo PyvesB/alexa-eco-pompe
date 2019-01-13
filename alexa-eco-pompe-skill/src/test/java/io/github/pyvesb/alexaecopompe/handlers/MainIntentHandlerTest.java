@@ -1,5 +1,7 @@
 package io.github.pyvesb.alexaecopompe.handlers;
 
+import static com.amazon.ask.model.PermissionStatus.DENIED;
+import static com.amazon.ask.model.PermissionStatus.GRANTED;
 import static io.github.pyvesb.alexaecopompe.domain.GasType.E10;
 import static io.github.pyvesb.alexaecopompe.domain.GasType.GAZOLE;
 import static io.github.pyvesb.alexaecopompe.domain.GasType.SP95;
@@ -21,6 +23,7 @@ import static utils.InputBuilder.buildDepartmentInput;
 import static utils.InputBuilder.buildIntentInput;
 import static utils.InputBuilder.buildIntentInputWithNoGasValue;
 import static utils.InputBuilder.buildNearbyInput;
+import static utils.InputBuilder.buildRadiusGeoInput;
 import static utils.InputBuilder.buildRadiusInput;
 import static utils.InputBuilder.buildTownInput;
 import static utils.ResponseAssertions.assertCard;
@@ -30,6 +33,7 @@ import static utils.TestFactoryHelper.buildDynamicDisplayName;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -48,6 +52,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.amazon.ask.dispatcher.request.handler.HandlerInput;
 import com.amazon.ask.model.Response;
+import com.amazon.ask.model.interfaces.geolocation.Coordinate;
+import com.amazon.ask.model.interfaces.geolocation.GeolocationState;
 
 import io.github.pyvesb.alexaecopompe.address.Address;
 import io.github.pyvesb.alexaecopompe.address.AddressForbiddenException;
@@ -124,7 +130,7 @@ class MainIntentHandlerTest {
 		when(dataProvider.getGasStationsWithinRadius(any(), anyInt())).thenReturn(asList(gs));
 		when(nameProvider.getById(any())).thenReturn(Optional.of("Pyves Gas"));
 
-		Response resp = underTest.handle(buildRadiusInput(SP95, "10", true)).orElseThrow(MissingResponse::new);
+		Response resp = underTest.handle(buildRadiusInput(SP95, "10")).orElseThrow(MissingResponse::new);
 
 		assertTrue(resp.getShouldEndSession());
 		assertCard("Pyves Gas\nRue Cler, Paris\nSans Plomb 95 : 1€10", resp);
@@ -132,6 +138,31 @@ class MainIntentHandlerTest {
 				+ "ses tarifs aujourd'hui.", resp);
 		verify(deviceAddressProvider).fetchAddress(API_ENDPOINT, DEVICE_ID, API_ACCESS_TOKEN);
 		verify(positionProvider).getByAddress(address);
+		verify(dataProvider).getGasStationsWithinRadius(position, 10);
+		verify(gasStationPriceSorter).sortGasStationsByIncreasingPricesForGasType(asList(gs), SP95);
+		verify(nameProvider).getById("1");
+	}
+
+	@Test
+	@Tags({ @Tag("happy"), @Tag("radius"), @Tag("geolocation") })
+	void shouldReturnPriceOfCheapestGasStationForRequestedRadiusAndGasTypeUsingGeolocation() {
+		GasStation gs = new GasStation("1", 43.561f, 4.076f, "75002", "Paris", "rue Cler", new Price(SP95, TODAY, 1.10f));
+		when(dataProvider.getGasStationsWithinRadius(any(), anyInt())).thenReturn(asList(gs));
+		when(nameProvider.getById(any())).thenReturn(Optional.of("Pyves Gas"));
+		Coordinate coordinate = Coordinate.builder().withLatitudeInDegrees(43.6).withLongitudeInDegrees(4.08)
+				.withAccuracyInMeters(999d).build();
+		GeolocationState geolocation = GeolocationState.builder().withCoordinate(coordinate)
+				.withTimestamp(OffsetDateTime.now().toString()).build();
+		Position position = new Position(43.6f, 4.08f);
+		when(positionProvider.getByGeolocation(any())).thenReturn(Optional.of(position));
+
+		Response resp = underTest.handle(buildRadiusGeoInput(SP95, "10", geolocation, GRANTED))
+				.orElseThrow(MissingResponse::new);
+
+		assertTrue(resp.getShouldEndSession());
+		assertCard("Pyves Gas\nRue Cler, Paris\nSans Plomb 95 : 1€10", resp);
+		assertSpeech("Pyves Gas vend du sans plomb 95 pour 1€10. Cette pompe est située Rue Cler à Paris, et a actualisé "
+				+ "ses tarifs aujourd'hui.", resp);
 		verify(dataProvider).getGasStationsWithinRadius(position, 10);
 		verify(gasStationPriceSorter).sortGasStationsByIncreasingPricesForGasType(asList(gs), SP95);
 		verify(nameProvider).getById("1");
@@ -148,7 +179,7 @@ class MainIntentHandlerTest {
 		when(dataProvider.getGasStationsWithinRadius(any(), anyInt())).thenReturn(asList(gs));
 		when(nameProvider.getById(any())).thenReturn(Optional.of("Pyves Gas"));
 
-		Response resp = underTest.handle(buildNearbyInput(SP95, true)).orElseThrow(MissingResponse::new);
+		Response resp = underTest.handle(buildNearbyInput(SP95)).orElseThrow(MissingResponse::new);
 
 		assertTrue(resp.getShouldEndSession());
 		assertCard("Pyves Gas\nRue Cler, Paris\nSans Plomb 95 : 1€10", resp);
@@ -243,7 +274,7 @@ class MainIntentHandlerTest {
 		GasStation gs = new GasStation("1", 43.561f, 4.076f, "75001", "paris", "Place Vendôme");
 		when(dataProvider.getGasStationsWithinRadius(any(), anyInt())).thenReturn(asList(gs));
 
-		Response resp = underTest.handle(buildRadiusInput(gasType, "10", true)).orElseThrow(MissingResponse::new);
+		Response resp = underTest.handle(buildRadiusInput(gasType, "10")).orElseThrow(MissingResponse::new);
 
 		assertTrue(resp.getShouldEndSession());
 		assertNull(resp.getCard());
@@ -272,7 +303,7 @@ class MainIntentHandlerTest {
 		when(positionProvider.getByAddress(any())).thenReturn(Optional.of(position));
 		when(dataProvider.getGasStationsWithinRadius(any(), anyInt())).thenReturn(emptyList());
 
-		Response resp = underTest.handle(buildRadiusInput(SP95, "10", true)).orElseThrow(MissingResponse::new);
+		Response resp = underTest.handle(buildRadiusInput(SP95, "10")).orElseThrow(MissingResponse::new);
 
 		assertTrue(resp.getShouldEndSession());
 		assertNull(resp.getCard());
@@ -284,7 +315,7 @@ class MainIntentHandlerTest {
 	@Tags({ @Tag("unsupported-gas"), @Tag("town"), @Tag("radius") })
 	Stream<DynamicTest> shouldReturnUnsupportedGasTypeIfGasTypeCouldNotBeMatched() {
 		HandlerInput input1 = buildTownInput("or noir", null, "Paris", "c05,75001,75002");
-		HandlerInput input2 = buildRadiusInput("sans plomb 97", null, "2", true);
+		HandlerInput input2 = buildRadiusInput("sans plomb 97", null, "2");
 
 		return Stream.of(input1, input2).map(input -> dynamicTest(buildDynamicDisplayName(input),
 				() -> {
@@ -301,7 +332,7 @@ class MainIntentHandlerTest {
 	@ValueSource(strings = { "0", "51", "" })
 	@Tags({ @Tag("incorrect-radius"), @Tag("radius") })
 	void shouldReturnIncorrectRadiusIfTheProvidedRadiusIsNotBetween1And20(String radius) {
-		Response resp = underTest.handle(buildRadiusInput(SP95, radius, true)).orElseThrow(MissingResponse::new);
+		Response resp = underTest.handle(buildRadiusInput(SP95, radius)).orElseThrow(MissingResponse::new);
 
 		assertFalse(resp.getShouldEndSession());
 		assertNull(resp.getCard());
@@ -311,10 +342,10 @@ class MainIntentHandlerTest {
 
 	@Test
 	@Tags({ @Tag("address-inaccessible"), @Tag("radius") })
-	void shouldReturnErrorIfDeviceAddressProviderThrowsAddressInaccessibleException() throws Exception {
+	void shouldReturnErrorIfAddressInaccessibleExceptionIsThrown() throws Exception {
 		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenThrow(AddressInaccessibleException.class);
 
-		Response resp = underTest.handle(buildRadiusInput(SP95, "10", true)).orElseThrow(MissingResponse::new);
+		Response resp = underTest.handle(buildRadiusInput(SP95, "10")).orElseThrow(MissingResponse::new);
 
 		assertTrue(resp.getShouldEndSession());
 		assertNull(resp.getCard());
@@ -323,27 +354,84 @@ class MainIntentHandlerTest {
 	}
 
 	@Test
-	@Tags({ @Tag("no-perms"), @Tag("radius") })
-	void shouldRequestPermissionsIfNotPresent() {
-		Response resp = underTest.handle(buildRadiusInput(SP95, "10", false)).orElseThrow(MissingResponse::new);
+	@Tags({ @Tag("address-forbidden"), @Tag("radius") })
+	void shouldRequestAddressPermissionsIfAddressForbiddenExceptionIsThrown() throws Exception {
+		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenThrow(AddressForbiddenException.class);
+
+		Response resp = underTest.handle(buildRadiusInput(SP95, "10")).orElseThrow(MissingResponse::new);
 
 		assertTrue(resp.getShouldEndSession());
-		assertCardWithPermissions(resp);
+		assertCardWithPermissions("read::alexa:device:all:address", resp);
 		assertSpeech("J'ai besoin de votre adresse pour trouver les pompes à proximité. Veuillez autoriser l'accès "
 				+ "dans l'application Alexa, ou bien précisez un nom de ville ou de département.", resp);
 	}
 
 	@Test
-	@Tags({ @Tag("address-forbidden"), @Tag("radius") })
-	void shouldRequestPermissionsIfDeviceAddressProviderThrowsAnAddressForbiddenException() throws Exception {
+	@Tags({ @Tag("address-forbidden"), @Tag("radius"), @Tag("geolocation") })
+	void shouldRequestAddressPermissionsIfGeolocationUnavailableAndAddressForbiddenExceptionIsThrown() throws Exception {
 		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenThrow(AddressForbiddenException.class);
 
-		Response resp = underTest.handle(buildRadiusInput(SP95, "10", true)).orElseThrow(MissingResponse::new);
+		Response resp = underTest.handle(buildRadiusGeoInput(SP95, "10", null, GRANTED)).orElseThrow(MissingResponse::new);
+
+		verify(deviceAddressProvider).fetchAddress(API_ENDPOINT, DEVICE_ID, API_ACCESS_TOKEN);
+		assertTrue(resp.getShouldEndSession());
+		assertCardWithPermissions("read::alexa:device:all:address", resp);
+		assertSpeech("Votre appareil n'a pas transmis de coordonnées GPS. Le service de localisation est-il activé ? Je "
+				+ "peux également utiliser votre adresse pour trouver les pompes à proximité. Veuillez autorisez l'accès "
+				+ "dans l'application Alexa, ou bien précisez un nom de ville ou de département.", resp);
+	}
+
+	@Test
+	@Tags({ @Tag("no-perms"), @Tag("radius"), @Tag("geolocation") })
+	void shouldRequestGeolocationPermissionsIfDeviceCompatible() {
+		Response resp = underTest.handle(buildRadiusGeoInput(SP95, "10", null, DENIED)).orElseThrow(MissingResponse::new);
 
 		assertTrue(resp.getShouldEndSession());
-		assertCardWithPermissions(resp);
-		assertSpeech("J'ai besoin de votre adresse pour trouver les pompes à proximité. Veuillez autoriser l'accès "
-				+ "dans l'application Alexa, ou bien précisez un nom de ville ou de département.", resp);
+		assertCardWithPermissions("alexa::devices:all:geolocation:read", resp);
+		assertSpeech("J'ai besoin de votre position géographique pour trouver les pompes à proximité. Veuillez autoriser "
+				+ "l'accès dans l'application Alexa, ou bien précisez un nom de ville ou de département.", resp);
+	}
+
+	@Test
+	@Tags({ @Tag("no-coordinate"), @Tag("radius"), @Tag("geolocation") })
+	void shouldFetchAddressIfDeviceGeolocationCompatibleButCoordinateUnavailable() throws Exception {
+		Address address = new Address("54Bis rue Cler", "Paris", "75002");
+		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenReturn(address);
+		GeolocationState geolocation = GeolocationState.builder().build();
+
+		underTest.handle(buildRadiusGeoInput(SP95, "10", geolocation, GRANTED)).orElseThrow(MissingResponse::new);
+
+		verify(deviceAddressProvider).fetchAddress(API_ENDPOINT, DEVICE_ID, API_ACCESS_TOKEN);
+	}
+
+	@Test
+	@Tags({ @Tag("coordinate-imprecise"), @Tag("radius"), @Tag("geolocation") })
+	void shouldFetchAddressIfDeviceGeolocationCompatibleButCoordinateImprecise() throws Exception {
+		Address address = new Address("54Bis rue Cler", "Paris", "75002");
+		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenReturn(address);
+		Coordinate coordinate = Coordinate.builder().withLatitudeInDegrees(43.6).withLongitudeInDegrees(4.08)
+				.withAccuracyInMeters(1001d).build();
+		GeolocationState geolocation = GeolocationState.builder().withCoordinate(coordinate)
+				.withTimestamp(OffsetDateTime.now().toString()).build();
+
+		underTest.handle(buildRadiusGeoInput(SP95, "10", geolocation, GRANTED)).orElseThrow(MissingResponse::new);
+
+		verify(deviceAddressProvider).fetchAddress(API_ENDPOINT, DEVICE_ID, API_ACCESS_TOKEN);
+	}
+
+	@Test
+	@Tags({ @Tag("coordinate-outdated"), @Tag("radius"), @Tag("geolocation") })
+	void shouldFetchAddressIfDeviceGeolocationCompatibleButCoordinateOutdated() throws Exception {
+		Address address = new Address("54Bis rue Cler", "Paris", "75002");
+		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenReturn(address);
+		Coordinate coordinate = Coordinate.builder().withLatitudeInDegrees(43.6).withLongitudeInDegrees(4.08)
+				.withAccuracyInMeters(10d).build();
+		GeolocationState geolocation = GeolocationState.builder().withCoordinate(coordinate)
+				.withTimestamp(OffsetDateTime.now().minusSeconds(301).toString()).build();
+
+		underTest.handle(buildRadiusGeoInput(SP95, "10", geolocation, GRANTED)).orElseThrow(MissingResponse::new);
+
+		verify(deviceAddressProvider).fetchAddress(API_ENDPOINT, DEVICE_ID, API_ACCESS_TOKEN);
 	}
 
 	@Test
@@ -359,7 +447,7 @@ class MainIntentHandlerTest {
 
 	@Test
 	@Tags({ @Tag("missing-slot") })
-	void shouldDelegateDirectiveForMissingGasType() throws Exception {
+	void shouldDelegateDirectiveForMissingGasType() {
 		Response resp = underTest.handle(buildIntentInputWithNoGasValue("AnyIntent")).orElseThrow(MissingResponse::new);
 
 		assertNotNull(resp.getDirectives());
@@ -372,7 +460,7 @@ class MainIntentHandlerTest {
 		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenReturn(address);
 		when(positionProvider.getByAddress(any())).thenReturn(Optional.empty());
 
-		Response resp = underTest.handle(buildRadiusInput(SP95, "10", true)).orElseThrow(MissingResponse::new);
+		Response resp = underTest.handle(buildRadiusInput(SP95, "10")).orElseThrow(MissingResponse::new);
 
 		assertTrue(resp.getShouldEndSession());
 		assertNull(resp.getCard());

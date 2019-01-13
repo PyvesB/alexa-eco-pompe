@@ -27,7 +27,7 @@ class CustomLaunchRequestHandlerTest {
 
 		assertFalse(resp.getShouldEndSession());
 		assertSpeech("Bienvenue ! Je peux trouver le carburant le moins cher par ville, par département ou près de "
-				+ "chez vous. Dîtes \"aide\" pour obtenir les instructions, ou \"stop\" pour quitter Éco Pompe.", resp);
+				+ "vous. Dîtes \"aide\" pour obtenir les instructions, ou \"stop\" pour quitter Éco Pompe.", resp);
 		assertNull(resp.getCard());
 	}
 

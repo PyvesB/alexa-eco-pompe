@@ -14,6 +14,8 @@ import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.amazon.ask.model.interfaces.geolocation.Coordinate;
+import com.amazon.ask.model.interfaces.geolocation.GeolocationState;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,6 +41,12 @@ public class PositionProvider {
 		this.timeout = timeout;
 		this.latPointer = JsonPointer.compile(latPath);
 		this.lonPointer = JsonPointer.compile(lonPath);
+	}
+	
+	public Optional<Position> getByGeolocation(GeolocationState geolocation) {
+		Coordinate coordinate = geolocation.getCoordinate();
+		return Optional.of(new Position(coordinate.getLatitudeInDegrees().floatValue(),
+				coordinate.getLongitudeInDegrees().floatValue()));
 	}
 
 	public Optional<Position> getByAddress(Address address) {
@@ -72,8 +80,11 @@ public class PositionProvider {
 			JsonNode latNode = jsonNode.at(latPointer);
 			JsonNode lonNode = jsonNode.at(lonPointer);
 			boolean missing = latNode.isMissingNode() || lonNode.isMissingNode();
-			return missing ? Optional.empty()
-					: Optional.of(new Position(Float.parseFloat(latNode.asText()), Float.parseFloat(lonNode.asText())));
+			if (missing) {
+				LOGGER.warn("Unknown position (url={})", connection.getURL());
+				return Optional.empty();
+			}
+			return Optional.of(new Position(Float.parseFloat(latNode.asText()), Float.parseFloat(lonNode.asText())));
 		}
 	}
 
