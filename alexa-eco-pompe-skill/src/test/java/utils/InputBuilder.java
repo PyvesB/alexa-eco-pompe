@@ -143,9 +143,9 @@ public class InputBuilder {
 			GeolocationState geolocation, User user) {
 		Device device = Device.builder().withDeviceId(DEVICE_ID).withSupportedInterfaces(supportedInterfaces).build();
 		SystemState systemState = SystemState.builder().withApiAccessToken(API_ACCESS_TOKEN).withApiEndpoint(API_ENDPOINT)
-				.withDevice(device).build();
+				.withDevice(device).withUser(user).build();
 		Context context = Context.builder().withSystem(systemState).withGeolocation(geolocation).build();
-		Session session = Session.builder().withSessionId(SESSION_ID).withUser(user).build();
+		Session session = Session.builder().withSessionId(SESSION_ID).build();
 		RequestEnvelope envelope = RequestEnvelope.builder().withContext(context).withRequest(request).withSession(session)
 				.build();
 		return HandlerInput.builder().withRequestEnvelope(envelope).build();

@@ -41,7 +41,6 @@ import com.amazon.ask.model.IntentRequest;
 import com.amazon.ask.model.PermissionStatus;
 import com.amazon.ask.model.RequestEnvelope;
 import com.amazon.ask.model.Response;
-import com.amazon.ask.model.Session;
 import com.amazon.ask.model.Slot;
 import com.amazon.ask.model.User;
 import com.amazon.ask.model.interfaces.geolocation.Coordinate;
@@ -118,8 +117,7 @@ public class MainIntentHandler implements IntentRequestHandler {
 		RequestEnvelope envelope = input.getRequestEnvelope();
 		Intent intent = intentRequest.getIntent();
 		String intentName = intent.getName();
-		Session session = envelope.getSession();
-		LOGGER.info("Received intent (session={}, name={})", session.getSessionId(), intentName);
+		LOGGER.info("Received intent (session={}, name={})", envelope.getSession().getSessionId(), intentName);
 
 		Map<String, Slot> slots = intent.getSlots();
 		Slot gasSlot = slots.get("gas");
@@ -130,11 +128,9 @@ public class MainIntentHandler implements IntentRequestHandler {
 		} else if ("GasDepartment".equals(intentName)) {
 			return handleLocationRequest(input.getResponseBuilder(), gasSlot, slots.get("department"));
 		} else if ("GasRadius".equals(intentName)) {
-			return handleRadiusRequest(input.getResponseBuilder(), gasSlot, slots.get("radius"), envelope.getContext(),
-					session.getUser());
+			return handleRadiusRequest(input.getResponseBuilder(), gasSlot, slots.get("radius"), envelope.getContext());
 		}
-		return handleRadiusRequest(input.getResponseBuilder(), gasSlot, DEFAULT_RADIUS, envelope.getContext(),
-				session.getUser());
+		return handleRadiusRequest(input.getResponseBuilder(), gasSlot, DEFAULT_RADIUS, envelope.getContext());
 	}
 
 	private Optional<Response> handleMissingGasValue(HandlerInput input, Intent intent) {
@@ -167,7 +163,7 @@ public class MainIntentHandler implements IntentRequestHandler {
 	}
 
 	private Optional<Response> handleRadiusRequest(ResponseBuilder respBuilder, Slot gasSlot, Slot radiusSlot,
-			Context context, User user) {
+			Context context) {
 		Optional<String> gasId = getSlotId(gasSlot);
 		if (!gasId.isPresent()) {
 			LOGGER.warn("Unsupported gas type (gas={})", gasSlot.getValue());
@@ -185,7 +181,7 @@ public class MainIntentHandler implements IntentRequestHandler {
 		if (isGeolocationAvailable(context)) {
 			LOGGER.info("Using device geolocation (device={})", device.getDeviceId());
 			position = positionProvider.getByGeolocation(context.getGeolocation());
-		} else if (isGeolocationCompatible(device) && isMissingGeolocationPermission(user)) {
+		} else if (isGeolocationCompatible(device) && isMissingGeolocationPermission(system.getUser())) {
 			return handleMissingPermissions(respBuilder, GEO_PERM, MISSING_GEO_PERMS);
 		} else {
 			LOGGER.info("Using device address (device={})", device.getDeviceId());
