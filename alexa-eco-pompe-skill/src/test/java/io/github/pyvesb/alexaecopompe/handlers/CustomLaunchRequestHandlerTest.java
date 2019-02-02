@@ -26,8 +26,8 @@ class CustomLaunchRequestHandlerTest {
 		Response resp = underTest.handle(buildLaunchInput()).orElseThrow(MissingResponse::new);
 
 		assertFalse(resp.getShouldEndSession());
-		assertSpeech("Bienvenue ! Je peux trouver le carburant le moins cher par ville, par département ou près de "
-				+ "vous. Dîtes \"aide\" pour obtenir les instructions, ou \"stop\" pour quitter Éco Pompe.", resp);
+		assertSpeech("Demandez-moi la pompe la moins chère dans une ville, un département ou près de vous. Pour plus "
+				+ "d'informations, dîtes \"aide\".", resp);
 		assertNull(resp.getCard());
 	}
 

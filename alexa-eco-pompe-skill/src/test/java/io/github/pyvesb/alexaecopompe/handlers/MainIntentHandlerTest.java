@@ -259,7 +259,7 @@ class MainIntentHandlerTest {
 		assertTrue(resp.getShouldEndSession());
 		assertNull(resp.getCard());
 		assertSpeech("Je n'ai pas trouvé de pompe vendant " + gasType.getSpeechText()
-				+ " dans Paris. Éssayez un autre carburant ou une ville différente.", resp);
+				+ " dans Paris. Essayez un autre carburant ou une ville différente.", resp);
 	}
 
 	@ParameterizedTest
@@ -279,7 +279,7 @@ class MainIntentHandlerTest {
 		assertTrue(resp.getShouldEndSession());
 		assertNull(resp.getCard());
 		assertSpeech("Je n'ai pas trouvé de pompe vendant " + gasType.getSpeechText() + " à moins de 10 kilomètres. "
-				+ "Réessayez en spécifiant un autre carburant ou une distance plus grande.", resp);
+				+ "Essayez un autre carburant ou une distance plus grande.", resp);
 	}
 
 	@Test
@@ -291,7 +291,7 @@ class MainIntentHandlerTest {
 
 		assertTrue(resp.getShouldEndSession());
 		assertNull(resp.getCard());
-		assertSpeech("Je n'ai pas trouvé de pompe dans Paris. Éssayez une ville différente.", resp);
+		assertSpeech("Je n'ai pas trouvé de pompe dans Paris. Essayez une ville différente.", resp);
 	}
 
 	@Test
@@ -307,8 +307,8 @@ class MainIntentHandlerTest {
 
 		assertTrue(resp.getShouldEndSession());
 		assertNull(resp.getCard());
-		assertSpeech("Je n'ai pas trouvé de pompe à moins de 10 kilomètres. Réessayez en spécifiant une distance "
-				+ "plus grande. Par exemple, dîtes simplement : \"le Sans Plomb 95 à moins de 15 kilomètres\".", resp);
+		assertSpeech("Je n'ai pas trouvé de pompe à moins de 10 kilomètres. Réessayez avec une distance plus grande. "
+				+ "Par exemple, dîtes simplement : \"le Sans Plomb 95 à moins de 15 kilomètres\".", resp);
 	}
 
 	@Test
