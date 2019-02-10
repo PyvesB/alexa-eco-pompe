@@ -1,14 +1,8 @@
 # Éco Pompe
-<a href="https://github.com/PyvesB/alexa-eco-pompe/releases">
-<img src ="https://img.shields.io/github/release/PyvesB/alexa-eco-pompe.svg?label=version" />
-</a>
-<a href="https://github.com/PyvesB/alexa-eco-pompe/issues">
-<img src ="https://img.shields.io/github/issues/PyvesB/alexa-eco-pompe.svg?label=tickets%20ouverts" />
-</a>
-<img src ="https://img.shields.io/travis/com/PyvesB/alexa-eco-pompe.svg?label=%C3%A9tat%20des%20tests" />
-<a href="https://github.com/PyvesB/alexa-eco-pompe/blob/master/LICENSE.md">
-<img src ="https://img.shields.io/github/license/PyvesB/alexa-eco-pompe.svg?label=licence" />
-</a>
+<a href="https://github.com/PyvesB/alexa-eco-pompe/releases"><img src ="https://img.shields.io/github/release/PyvesB/alexa-eco-pompe.svg?label=version" /></a>
+<a href="https://github.com/PyvesB/alexa-eco-pompe/issues"><img src ="https://img.shields.io/github/issues/PyvesB/alexa-eco-pompe.svg?label=tickets%20ouverts" /></a>
+<a href="https://travis-ci.com/PyvesB/alexa-eco-pompe"><img src ="https://img.shields.io/travis/com/PyvesB/alexa-eco-pompe.svg?label=%C3%A9tat%20des%20tests" /></a>
+<a href="https://github.com/PyvesB/alexa-eco-pompe/blob/master/LICENSE.md"><img src ="https://img.shields.io/github/license/PyvesB/alexa-eco-pompe.svg?label=licence" /></a>
 <br/>
 
 **Faites des économies en demandant à Alexa de trouver les pompes à essence les moins chères !**
