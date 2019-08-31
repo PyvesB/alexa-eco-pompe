@@ -195,7 +195,7 @@ public class MainIntentHandler implements IntentRequestHandler {
 				String speech = isGeolocationCompatible(device) ? MISSING_ADDRESS_PERMS_NO_GEO : MISSING_ADDRESS_PERMS;
 				return handleMissingPermissions(respBuilder, ADDRESS_PERM, speech);
 			} catch (AddressNotSpecifiedException e) {
-				LOGGER.error("Amazon no address specified");
+				LOGGER.info("No device address specified");
 				return respBuilder.withSpeech(ADDRESS_NOT_SPECIFIED).withShouldEndSession(true).build();
 			} catch (AddressInaccessibleException e) {
 				LOGGER.error("Amazon address error (endpoint={})", system.getApiEndpoint(), e);
