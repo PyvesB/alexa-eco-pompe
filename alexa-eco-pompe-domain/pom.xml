@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>io.github.pyvesb</groupId>
 		<artifactId>alexa-eco-pompe</artifactId>
-		<version>1.1.1</version>
+		<version>1.1.2</version>
 	</parent>
 	<artifactId>alexa-eco-pompe-domain</artifactId>
 	<name>alexa-eco-pompe-domain</name>
