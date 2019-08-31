@@ -1,6 +1,7 @@
 package io.github.pyvesb.alexaecopompe.handlers;
 
 import static io.github.pyvesb.alexaecopompe.speech.Messages.ADDRESS_ERROR;
+import static io.github.pyvesb.alexaecopompe.speech.Messages.ADDRESS_NOT_SPECIFIED;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.INCORRECT_RADIUS;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.MISSING_ADDRESS_PERMS;
 import static io.github.pyvesb.alexaecopompe.speech.Messages.MISSING_ADDRESS_PERMS_NO_GEO;
@@ -53,6 +54,7 @@ import com.amazon.ask.response.ResponseBuilder;
 import io.github.pyvesb.alexaecopompe.address.Address;
 import io.github.pyvesb.alexaecopompe.address.AddressForbiddenException;
 import io.github.pyvesb.alexaecopompe.address.AddressInaccessibleException;
+import io.github.pyvesb.alexaecopompe.address.AddressNotSpecifiedException;
 import io.github.pyvesb.alexaecopompe.address.DeviceAddressProvider;
 import io.github.pyvesb.alexaecopompe.data.DataProvider;
 import io.github.pyvesb.alexaecopompe.data.NameProvider;
@@ -192,6 +194,9 @@ public class MainIntentHandler implements IntentRequestHandler {
 			} catch (AddressForbiddenException e) {
 				String speech = isGeolocationCompatible(device) ? MISSING_ADDRESS_PERMS_NO_GEO : MISSING_ADDRESS_PERMS;
 				return handleMissingPermissions(respBuilder, ADDRESS_PERM, speech);
+			} catch (AddressNotSpecifiedException e) {
+				LOGGER.error("Amazon no address specified");
+				return respBuilder.withSpeech(ADDRESS_NOT_SPECIFIED).withShouldEndSession(true).build();
 			} catch (AddressInaccessibleException e) {
 				LOGGER.error("Amazon address error (endpoint={})", system.getApiEndpoint(), e);
 				return respBuilder.withSpeech(ADDRESS_ERROR).withShouldEndSession(true).build();

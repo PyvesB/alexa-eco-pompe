@@ -58,6 +58,7 @@ import com.amazon.ask.model.interfaces.geolocation.GeolocationState;
 import io.github.pyvesb.alexaecopompe.address.Address;
 import io.github.pyvesb.alexaecopompe.address.AddressForbiddenException;
 import io.github.pyvesb.alexaecopompe.address.AddressInaccessibleException;
+import io.github.pyvesb.alexaecopompe.address.AddressNotSpecifiedException;
 import io.github.pyvesb.alexaecopompe.address.DeviceAddressProvider;
 import io.github.pyvesb.alexaecopompe.data.DataProvider;
 import io.github.pyvesb.alexaecopompe.data.NameProvider;
@@ -368,6 +369,19 @@ class MainIntentHandlerTest {
 		assertNull(resp.getCard());
 		assertSpeech("Alexa a retourné une erreur. Réessayez plus tard, ou bien précisez un nom de ville ou de département.",
 				resp);
+	}
+
+	@Test
+	@Tags({ @Tag("address-not-specified"), @Tag("radius") })
+	void shouldReturnErrorIfAddressNotSpecifiedExceptionIsThrown() throws Exception {
+		when(deviceAddressProvider.fetchAddress(any(), any(), any())).thenThrow(AddressNotSpecifiedException.class);
+		
+		Response resp = underTest.handle(buildRadiusInput(SP95, "10")).orElseThrow(MissingResponse::new);
+		
+		assertTrue(resp.getShouldEndSession());
+		assertNull(resp.getCard());
+		assertSpeech("J'ai besoin de votre adresse pour trouver les pompes à proximité. Veuillez la renseigner dans "
+				+ "l'application Alexa, ou bien précisez un nom de ville ou de département.", resp);
 	}
 
 	@Test

@@ -7,6 +7,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static java.net.HttpURLConnection.HTTP_FORBIDDEN;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
+import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -32,7 +33,7 @@ class DeviceAddressProviderTest {
 	void setUp() {
 		wireMockServer.start();
 		WireMock.configureFor("localhost", wireMockServer.port());
-		underTest = new DeviceAddressProvider(250);
+		underTest = new DeviceAddressProvider(500);
 	}
 
 	@AfterEach
@@ -64,6 +65,18 @@ class DeviceAddressProviderTest {
 						.withStatus(HTTP_FORBIDDEN)));
 
 		assertThrows(AddressForbiddenException.class,
+				() -> underTest.fetchAddress("http://localhost:8089", DEVICE_ID, API_TOKEN));
+	}
+	
+	@Test
+	void shouldThrowNotSpecifiedExceptionIf204Returned() {
+		wireMockServer.stubFor(get(urlEqualTo(API_PATH))
+				.withHeader("Authorization", equalTo("Bearer " + API_TOKEN))
+				.withHeader("Accept", equalTo("application/json"))
+				.willReturn(aResponse()
+						.withStatus(HTTP_NO_CONTENT)));
+
+		assertThrows(AddressNotSpecifiedException.class,
 				() -> underTest.fetchAddress("http://localhost:8089", DEVICE_ID, API_TOKEN));
 	}
 
@@ -102,7 +115,7 @@ class DeviceAddressProviderTest {
 						.withStatus(HTTP_OK)
 						.withHeader("Content-Type", "application/json")
 						.withBodyFile("address_response.json")
-						.withFixedDelay(250)));
+						.withFixedDelay(500)));
 
 
 		assertThrows(AddressInaccessibleException.class,

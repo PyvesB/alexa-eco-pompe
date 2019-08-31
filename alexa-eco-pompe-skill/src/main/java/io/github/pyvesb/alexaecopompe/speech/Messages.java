@@ -20,6 +20,7 @@ public enum Messages {;
 	public static final String MISSING_ADDRESS_PERMS = "J'ai besoin de votre adresse pour trouver les pompes à proximité. Veuillez autoriser l'accès dans l'application Alexa, ou bien précisez un nom de ville ou de département.";
 	public static final String MISSING_ADDRESS_PERMS_NO_GEO = "Votre appareil n'a pas transmis de coordonnées GPS. Le service de localisation est-il activé ? Je peux également utiliser votre adresse pour trouver les pompes à proximité. Veuillez autorisez l'accès dans l'application Alexa, ou bien précisez un nom de ville ou de département.";
 	public static final String MISSING_GEO_PERMS = "J'ai besoin de votre position géographique pour trouver les pompes à proximité. Veuillez autoriser l'accès dans l'application Alexa, ou bien précisez un nom de ville ou de département.";
+	public static final String ADDRESS_NOT_SPECIFIED = "J'ai besoin de votre adresse pour trouver les pompes à proximité. Veuillez la renseigner dans l'application Alexa, ou bien précisez un nom de ville ou de département.";
 	public static final String ADDRESS_ERROR = "Alexa a retourné une erreur. Réessayez plus tard, ou bien précisez un nom de ville ou de département.";
 	public static final String POSITION_UNKNOWN = "Je n'ai pas réussi à déterminer votre position géographique avec l'adresse renseignée dans votre Amazon Echo. Réessayez plus tard, ou bien précisez un nom de ville ou de département.";
 
